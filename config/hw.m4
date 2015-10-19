@@ -11,6 +11,7 @@ AC_ARG_WITH(hw-support, AS_HELP_STRING([--with-hw-support="driver-name"],[Compil
 				[bcm: compile Broadcom hardware support]
 				[octeon: compile OCTEON hardware support]
 				[netfpga10g: compile NetFPGA 10G hardware code (HW code not included)]
+				[fscale-l2sw: compile Freescale L2Switch hardware support]
 				[example: compile the example forwarding module code]
 ,
  [ 
@@ -81,6 +82,15 @@ if( test "$HW" = "example");then
 	AC_CONFIG_SUBDIRS([src/xdpd/drivers/example])
 	DRIVER_HAS_INLINE_SUPPORT="no"
 fi
+
+if( test "$HW" = "fscale-l2sw");then
+	msg="$msg Freescale T1040 L2Switch"
+	AC_DEFINE(HW_FSCALE_L2SW)
+	PLATFORM=fscale_l2sw
+	AC_CONFIG_SUBDIRS([src/xdpd/drivers/fscale_l2sw])
+	DRIVER_HAS_INLINE_SUPPORT="no"
+fi
+
 #[+]Add your platform here...
 
 if test -z $PLATFORM; then
