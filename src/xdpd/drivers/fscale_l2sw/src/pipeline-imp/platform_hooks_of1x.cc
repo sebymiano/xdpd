@@ -4,6 +4,7 @@
 #include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_flow_table.h>
 #include <rofl/datapath/hal/openflow/openflow1x/of1x_cmm.h>
 #include <rofl/common/utils/c_logger.h>
+#include "../config.h"
 
 /*
 * Hooks for configuration of the switch
