@@ -479,7 +479,6 @@ hal_result_t hal_driver_bring_port_up_by_num(uint64_t dpid,
 	ROFL_INFO("["DRIVER_NAME"] calling bring_port_up_by_num()\n");
 
 	of_switch_t* lsw;
-	switch_port_snapshot_t* port_snapshot;
 
 	lsw = physical_switch_get_logical_switch_by_dpid(dpid);
 	if (!lsw)
@@ -496,7 +495,7 @@ hal_result_t hal_driver_bring_port_up_by_num(uint64_t dpid,
 
 	if (vtss_l2sw_bring_port_up(
 			(vtss_l2sw_port_t*) lsw->logical_ports[port_num].port->platform_port_state)
-			!= HAL_SUCCESS) {
+			!= ROFL_SUCCESS) {
 		ROFL_ERR(DRIVER_NAME" Error bring up port %s.\n",
 				lsw->logical_ports[port_num].port->name);
 		assert(0);
@@ -520,7 +519,6 @@ hal_result_t hal_driver_bring_port_down_by_num(uint64_t dpid,
 	ROFL_INFO("["DRIVER_NAME"] calling bring_port_down_by_num()\n");
 
 	of_switch_t* lsw;
-	switch_port_snapshot_t* port_snapshot;
 
 	lsw = physical_switch_get_logical_switch_by_dpid(dpid);
 	if (!lsw)
@@ -536,7 +534,7 @@ hal_result_t hal_driver_bring_port_down_by_num(uint64_t dpid,
 	//Call I/O manager to bring it down
 	if (vtss_l2sw_bring_port_down(
 			(vtss_l2sw_port_t*) lsw->logical_ports[port_num].port->platform_port_state)
-			!= HAL_SUCCESS) {
+			!= ROFL_SUCCESS) {
 		ROFL_ERR(DRIVER_NAME" Error bring up port %s.\n",
 				lsw->logical_ports[port_num].port->name);
 		assert(0);
