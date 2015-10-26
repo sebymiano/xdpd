@@ -350,7 +350,6 @@ hal_result_t hal_driver_detach_port_from_switch(uint64_t dpid,
 
 	of_switch_t* lsw;
 	switch_port_t* port;
-	switch_port_snapshot_t *port_snapshot = NULL, *port_pair_snapshot = NULL;
 
 	lsw = physical_switch_get_logical_switch_by_dpid(dpid);
 	if (!lsw)
@@ -421,7 +420,6 @@ hal_result_t hal_driver_bring_port_up(const char* name) {
 	ROFL_INFO("["DRIVER_NAME"] calling bring_port_up()\n");
 
 	switch_port_t* port;
-	switch_port_snapshot_t* port_snapshot;
 
 	//Check if the port does exist
 	port = physical_switch_get_port_by_name(name);
@@ -429,8 +427,7 @@ hal_result_t hal_driver_bring_port_up(const char* name) {
 	if (!port || !port->platform_port_state)
 		return HAL_FAILURE;
 
-	if (vtss_l2sw_bring_port_up((vtss_l2sw_port_t*) port->platform_port_state)
-			!= HAL_SUCCESS) {
+	if (vtss_l2sw_bring_port_up((vtss_l2sw_port_t*) port->platform_port_state) != ROFL_SUCCESS) {
 		ROFL_ERR(DRIVER_NAME" Error bring up port %s.\n", port->name);
 		assert(0);
 		return HAL_FAILURE;
@@ -451,7 +448,6 @@ hal_result_t hal_driver_bring_port_down(const char* name) {
 	ROFL_INFO("["DRIVER_NAME"] calling bring_port_down()\n");
 
 	switch_port_t* port;
-	switch_port_snapshot_t* port_snapshot;
 
 	//Check if the port does exist
 	port = physical_switch_get_port_by_name(name);
@@ -460,7 +456,7 @@ hal_result_t hal_driver_bring_port_down(const char* name) {
 		return HAL_FAILURE;
 
 	if (vtss_l2sw_bring_port_down((vtss_l2sw_port_t*) port->platform_port_state)
-			!= HAL_SUCCESS) {
+			!= ROFL_SUCCESS) {
 		ROFL_ERR(DRIVER_NAME" Error bring up port %s.\n", port->name);
 		assert(0);
 		return HAL_FAILURE;
