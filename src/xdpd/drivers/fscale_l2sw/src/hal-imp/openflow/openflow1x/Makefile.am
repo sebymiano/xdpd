@@ -1,4 +1,4 @@
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libxdpd_driver_fscale_l2sw_hal_imp_of1x.la
-libxdpd_driver_fscale_l2sw_hal_imp_of1x_la_SOURCES = of1x_driver.c
+libxdpd_driver_fscale_l2sw_hal_imp_of1x_la_SOURCES = of1x_driver.cc

@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/pipeline/switch_port.h>
-#include "../include/vtss_api/vtss_api.h"
-#include "../include/fscale_l2sw/fsl_utils/fsl_utils.h"
+#include "vtss_api/vtss_api.h"
+#include "fscale_l2sw/fsl_utils/fsl_utils.h"
 #include "vtss_l2sw.h"
 
 rofl_result_t vtss_l2sw_bring_port_up(vtss_l2sw_port_t* port) {

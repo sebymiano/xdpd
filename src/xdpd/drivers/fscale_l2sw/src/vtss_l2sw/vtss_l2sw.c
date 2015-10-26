@@ -4,9 +4,9 @@
 
 #include "vtss_l2sw.h"
 #include <rofl/common/utils/c_logger.h>
-#include "../include/vtss_api/vtss_api.h"
-#include "../include/fscale_l2sw/board_init/board_init.h"
-#include "../include/fscale_l2sw/fsl_utils/fsl_utils.h"
+#include "vtss_api/vtss_api.h"
+#include "fscale_l2sw/board_init/board_init.h"
+#include "fscale_l2sw/fsl_utils/fsl_utils.h"
 #include "ports.h"
 
 #include <sys/types.h>
