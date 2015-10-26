@@ -20,9 +20,10 @@
 
 #include "io/iface_utils.h"
 #include "util/time_utils.h"
-#include "include/vtss_api/vtss_api.h"
 #include "vtss_l2sw/vtss_l2sw.h"
 #include "vtss_l2sw/ports.h"
+#include <vtss_api/vtss_api.h>
+
 
 using namespace xdpd::gnu_linux;
 
