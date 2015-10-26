@@ -18,7 +18,7 @@
 * General parameters
 */
 
-#define DRIVER_NAME "fscale_l2sw"
+/*#define DRIVER_NAME "fscale_l2sw"*/
 
 //I/O
 //Bufferpool reservoir(PKT_INs); ideally at least X*max_num_lsis

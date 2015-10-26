@@ -1,4 +1,4 @@
-AC_INIT(xdpd - Freescale L2Switch T1040 driver, m4_esyscmd_s(cat VERSION), rofl@bisdn.de,  xdpd_example_fm)
+AC_INIT(xdpd - Freescale L2Switch T1040 driver, m4_esyscmd_s(cat VERSION), rofl@bisdn.de,  xdpd_fscale_l2sw_fm)
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -42,7 +42,7 @@ m4_include([../../../../config/profiling.m4])
 # Ensure rofl-pipeline platform functions are NOT inlined 
 m4_include([../../../../config/no_pipeline_inline.m4])
 
-AC_DEFINE(DRIVER_NAME,"example_platform")
+AC_DEFINE(DRIVER_NAME,"fscale_l2sw")
 
 AC_CONFIG_FILES([
 	Makefile
@@ -50,6 +50,8 @@ AC_CONFIG_FILES([
 	src/hal-imp/Makefile
 	src/hal-imp/openflow/openflow1x/Makefile
 	src/pipeline-imp/Makefile
+	src/io/Makefile
+	src/vtss_l2sw/Makefile
 ])
 
 AC_OUTPUT
