@@ -11,4 +11,4 @@ libxdpd_driver_fscale_l2sw_src_la_LIBADD = \
 		io/libxdpd_driver_fscale_l2sw_io.la\
 		vtss_l2sw/libxdpd_driver_fscale_l2sw_vtss_l2sw.la
 		
-libxdpd_driver_fscale_l2sw_src_la_LDFLAGS = -L/home/seby/Desktop/l2switch/lib -lvtss_api #-Iadd_header_path_here
+libxdpd_driver_fscale_l2sw_src_la_LDFLAGS = -lvtss_api -lfscale_l2sw #-Iadd_header_path_here
