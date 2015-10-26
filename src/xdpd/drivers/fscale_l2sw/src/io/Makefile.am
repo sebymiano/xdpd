@@ -7,8 +7,7 @@ noinst_LTLIBRARIES = libxdpd_driver_fscale_l2sw_io.la
 libxdpd_driver_fscale_l2sw_io_la_SOURCES = \
 					bufferpool.cc\
 					datapacket_storage.cc\
-					datapacketx86.cc\
-					packet_io.cc
+					datapacketx86.cc
 
 #Define classifier
 #CLASSIFIER_LIB=packet_classifiers/c_pktclassifier/libxdpd_driver_netfpga10g_io_classifiers_c.la
