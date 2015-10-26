@@ -12,6 +12,7 @@
 #include <string.h>
 #include <rofl/datapath/pipeline/openflow/of_switch.h>
 #include <rofl/datapath/pipeline/common/datapacket.h>
+#include "../bg_taskmanager.h"
 #include "../io/bufferpool.h"
 #include "../vtss_l2sw/vtss_l2sw.h"
 #include "../vtss_l2sw/ports.h"
