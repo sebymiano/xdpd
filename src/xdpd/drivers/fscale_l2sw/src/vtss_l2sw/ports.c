@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/pipeline/switch_port.h>
-#include "vtss_api/vtss_api.h"
+#include "vtss_api.h"
 #include "fscale_l2sw/fsl_utils/fsl_utils.h"
 #include "vtss_l2sw.h"
 
