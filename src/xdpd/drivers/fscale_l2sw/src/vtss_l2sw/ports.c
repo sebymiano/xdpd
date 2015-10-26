@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/pipeline/switch_port.h>
-#include "vtss_api.h"
+#include "vtss_api/vtss_api.h"
 #include "fscale_l2sw/fsl_utils/fsl_utils.h"
 #include "vtss_l2sw.h"
 
@@ -77,23 +77,20 @@ rofl_result_t initialize_port(int port_no, switch_port_t** port) {
 	vtss_port->vtss_l2sw_port_num = port_no;
 
 	//Initialize platform specific info
-	*port->platform_port_state = (platform_port_state_t*) vtss_port;
+	(*port)->platform_port_state = (platform_port_state_t*) vtss_port;
 
 	return ROFL_SUCCESS;
 }
 
 rofl_result_t destroy_port(switch_port_t* port) {
-	int port_no;
 	vtss_l2sw_port_t* vtss_port;
 
 	vtss_port = (vtss_l2sw_port_t*) port->platform_port_state;
-	port_no = vtss_port->vtss_l2sw_port_num;
 
 	if (vtss_port) {
 		free(vtss_port);
 		return ROFL_SUCCESS;
 	} else {
-		ROFL_DEBUG("destroy_port() called without initialized vtss port");
 		return ROFL_FAILURE;
 	}
 

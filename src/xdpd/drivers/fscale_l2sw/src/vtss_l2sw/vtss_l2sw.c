@@ -7,6 +7,8 @@
 #include "vtss_api/vtss_api.h"
 #include "fscale_l2sw/board_init/board_init.h"
 #include "fscale_l2sw/fsl_utils/fsl_utils.h"
+#include "fscale_l2sw/port_setup/port_setup.h"
+#include <rofl/datapath/pipeline/physical_switch.h>
 #include "ports.h"
 
 #include <sys/types.h>
@@ -24,13 +26,13 @@ rofl_result_t vtss_l2sw_init() {
 	int port_no;
 	switch_port_t* port;
 
-	/*for (group = 0; group < VTSS_TRACE_GROUP_COUNT; group++) {
+	for (group = 0; group < VTSS_TRACE_GROUP_COUNT; group++) {
 	 (void)vtss_trace_conf_get(group, &conf);
 	 for (layer = 0; layer < VTSS_TRACE_LAYER_COUNT; layer++)
 	 conf.level[layer] = VTSS_TRACE_LEVEL_ERROR;
 	 (void)vtss_trace_conf_set(group, &conf);
 	 }
-	 */
+
 
 	vtss_inst_get(VTSS_TARGET_SEVILLE, &create);
 	vtss_inst_create(&create, &inst);
