@@ -2,6 +2,7 @@
 #define _VTSS_L2SW_PORTS_H_
 
 #include <rofl_datapath.h>
+#include <rofl/datapath/pipeline/switch_port.h>
 
 typedef struct vtss_l2sw_port {
 	//This is the number of the physical port in the L2 switch
