@@ -20,6 +20,7 @@
 
 #include "io/iface_utils.h"
 #include "io/datapacket_storage.h"
+#include "io/bufferpool.h"
 #include "util/time_utils.h"
 #include "vtss_l2sw/vtss_l2sw.h"
 #include "vtss_l2sw/ports.h"
@@ -76,7 +77,7 @@ void check_port_status() {
 
 void update_misc_stats() {
 	unsigned int i, max_ports;
-	switch_port_t* port, **array;
+	switch_port_t** array;
 	vtss_port_counters_t counters;
 
 	array = physical_switch_get_physical_ports(&max_ports);
