@@ -6,9 +6,9 @@
 #include "ports.h"
 #include <rofl/common/utils/c_logger.h>
 #include <vtss_api/vtss_api.h>
-#include <fscale_l2sw/board_init/board_init.h>
-#include <fscale_l2sw/fsl_utils/fsl_utils.h>
-#include <fscale_l2sw/port_setup/port_setup.h>
+#include <board_init/board_init.h>
+#include <fsl_utils/fsl_utils.h>
+#include <port_setup/port_setup.h>
 #include <rofl/datapath/pipeline/physical_switch.h>
 
 #include <sys/types.h>
