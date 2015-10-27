@@ -21,6 +21,7 @@
 #include "io/iface_utils.h"
 #include "io/datapacket_storage.h"
 #include "io/bufferpool.h"
+#include "pipeline-imp/ls_internal_state.h"
 #include "util/time_utils.h"
 #include "vtss_l2sw/vtss_l2sw.h"
 #include "vtss_l2sw/ports.h"
