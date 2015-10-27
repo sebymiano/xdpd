@@ -19,10 +19,12 @@
 #include <rofl/datapath/hal/cmm.h>
 
 #include "io/iface_utils.h"
+#include "io/datapacket_storage.h"
 #include "util/time_utils.h"
 #include "vtss_l2sw/vtss_l2sw.h"
 #include "vtss_l2sw/ports.h"
 #include <vtss_api/vtss_api.h>
+#include <fsl_utils/fsl_utils.h>
 
 
 using namespace xdpd::gnu_linux;
@@ -196,8 +198,6 @@ int process_timeouts() {
  * @brief contents the infinite loop checking for ports and timeouts
  */
 void* x86_background_tasks_routine(void* param) {
-	switch_port_t* port;
-
 	while (bg_continue_execution) {
 
 		sleep(LSW_TIMER_SLOT_MS);
