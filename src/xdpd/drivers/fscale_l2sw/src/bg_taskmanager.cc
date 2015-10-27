@@ -27,7 +27,6 @@
 #include <vtss_api/vtss_api.h>
 #include <fsl_utils/fsl_utils.h>
 
-
 using namespace xdpd::gnu_linux;
 
 //Local static variable for background manager thread
@@ -163,24 +162,28 @@ int process_timeouts() {
 
 			if (logical_switches[i] != NULL) {
 
+				//Recover storage pointer
 				dps =
-						((struct logical_switch_internals*) logical_switches[i]->platform_state)->storage;
-				//TODO process buffers in the storage
+						((switch_platform_state_t*) logical_switches[i]->platform_state)->storage;
+
+				//Loop until the oldest expired packet is taken out
 				while (dps->oldest_packet_needs_expiration(&buffer_id)) {
 
 					ROFL_DEBUG_VERBOSE(
-							"<%s:%d> trying to erase a datapacket from storage\n",
-							__func__, __LINE__);
+							DRIVER_NAME" [bg] Trying to erase a datapacket from storage: %u\n",
+							buffer_id);
+
 					if ((pkt = dps->get_packet(buffer_id)) == NULL) {
-						ROFL_DEBUG_VERBOSE("Error in get_packet_wrapper %u\n",
+						ROFL_DEBUG_VERBOSE(
+								DRIVER_NAME" [bg] Error in get_packet_wrapper %u\n",
 								buffer_id);
 					} else {
-						ROFL_DEBUG_VERBOSE("Datapacket expired correctly %u\n",
+						ROFL_DEBUG_VERBOSE(
+								DRIVER_NAME" [bg] Datapacket expired correctly %u\n",
 								buffer_id);
 						//Return buffer to bufferpool
 						bufferpool::release_buffer(pkt);
 					}
-
 				}
 			}
 		}
