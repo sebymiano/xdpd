@@ -11,5 +11,3 @@ libxdpd_driver_fscale_l2sw_pipeline_imp_la_SOURCES = \
 					timing.c
 
 libxdpd_driver_fscale_l2sw_pipeline_imp_la_LIBADD = 
-
-libxdpd_driver_fscale_l2sw_pipeline_imp_la_LDFLAGS = -lvtss_api -lfscale_l2sw

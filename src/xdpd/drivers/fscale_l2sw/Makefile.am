@@ -12,8 +12,6 @@ libxdpd_driver_fscale_l2sw_la_SOURCES =
 libxdpd_driver_fscale_l2sw_la_LIBADD = \
 		src/libxdpd_driver_fscale_l2sw_src.la
 
-libxdpd_driver_fscale_l2sw_la_LDFLAGS = -lvtss_api -lfscale_l2sw 
-
 maintainer-clean-local:
 	rm -rf $(top_srcdir)/m4
 	rm -rf $(top_srcdir)/build-aux
