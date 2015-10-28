@@ -9,3 +9,5 @@ libxdpd_driver_fscale_l2sw_src_vtss_l2sw_la_SOURCES = \
 
 libxdpd_driver_fscale_l2sw_src_vtss_l2sw_la_LIBADD = 
 
+libxdpd_driver_fscale_l2sw_src_pipeline_imp_la_LDFLAGS = -lvtss_api -lfscale_l2sw
+

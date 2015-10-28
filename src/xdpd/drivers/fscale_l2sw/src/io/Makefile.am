@@ -16,4 +16,6 @@ libxdpd_driver_fscale_l2sw_src_io_la_SOURCES = \
 
 libxdpd_driver_fscale_l2sw_src_io_la_LIBADD =\
 	#$(CLASSIFIER_LIB)
+	
+libxdpd_driver_fscale_l2sw_src_io_la_LDFLAGS = -lvtss_api -lfscale_l2sw
 
