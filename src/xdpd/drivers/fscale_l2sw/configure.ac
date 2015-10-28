@@ -55,6 +55,7 @@ AC_CONFIG_FILES([
 	src/io/packet_classifiers/Makefile
 	src/io/packet_classifiers/c_types_pktclassifier/Makefile
 	src/vtss_l2sw/Makefile
+	src/util/Makefile
 ])
 
 AC_OUTPUT

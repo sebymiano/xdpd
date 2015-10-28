@@ -1,8 +1,8 @@
 MAINTAINERCLEANFILES = Makefile.in
 
-noinst_LTLIBRARIES = libxdpd_driver_fscale_l2sw_pipeline_imp.la
+noinst_LTLIBRARIES = libxdpd_driver_fscale_l2sw_src_pipeline_imp.la
 
-libxdpd_driver_fscale_l2sw_pipeline_imp_la_SOURCES = \
+libxdpd_driver_fscale_l2sw_src_pipeline_imp_la_SOURCES = \
 					memory.c\
 					packet.c\
 					platform_hooks_of1x.cc\
@@ -10,4 +10,4 @@ libxdpd_driver_fscale_l2sw_pipeline_imp_la_SOURCES = \
 					pthread_lock.c\
 					timing.c
 
-libxdpd_driver_fscale_l2sw_pipeline_imp_la_LIBADD = 
+libxdpd_driver_fscale_l2sw_src_pipeline_imp_la_LIBADD = 
