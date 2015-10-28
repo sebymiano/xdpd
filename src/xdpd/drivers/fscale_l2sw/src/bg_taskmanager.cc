@@ -28,6 +28,7 @@
 #include <vtss_api/vtss_api.h>
 #include <fsl_utils/fsl_utils.h>
 #include "util/time_utils.h"
+#include "io/iface_utils.h"
 
 using namespace xdpd::gnu_linux;
 
