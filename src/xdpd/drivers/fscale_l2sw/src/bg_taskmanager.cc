@@ -71,11 +71,11 @@ void check_port_status() {
 			if (port->up
 					&& (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
 				//Port changed to down state
-				update_port_status(iface_name);
+				update_port_status(iface_name, FALSE);
 			} else if (!port->up
 					&& (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
 				//Port changed to up state
-				update_port_status(iface_name);
+				update_port_status(iface_name, TRUE);
 			}
 		}
 	}

@@ -17,7 +17,6 @@
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/hal/cmm.h>
 #include "iface_utils.h"
-#include "datapacketx86.h"
 
 #include "../vtss_l2sw/ports.h"
 

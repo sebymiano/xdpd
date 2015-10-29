@@ -15,7 +15,7 @@ ROFL_BEGIN_DECLS
 /*
  * @name update_port_status
  */
-rofl_result_t update_port_status(char * name);
+rofl_result_t update_port_status(char * name, bool up);
 
 
 //C++ extern C
