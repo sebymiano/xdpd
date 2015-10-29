@@ -215,7 +215,7 @@ int process_timeouts() {
 void* x86_background_tasks_routine(void* param) {
 	while (bg_continue_execution) {
 
-		usleep(LSW_TIMER_SLOT_MS*1000);
+		sleep(1);
 
 		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: updating statistics...\n");
 		update_misc_stats();
