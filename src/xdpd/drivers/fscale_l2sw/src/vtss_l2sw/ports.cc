@@ -19,7 +19,7 @@ rofl_result_t vtss_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
 
 	if (is_valid_port(port_no)) {
 		if (vtss_phy_status_get(NULL, port_no, &status_phy) != VTSS_RC_OK) {
-			ROFL_ERR("[vtss_l2sw]port.c: can't get status for port phy");
+			ROFL_ERR("[vtss_l2sw]port.c: can't get status for port phy\n");
 			//Can't get status for port phy
 			return ROFL_FAILURE;
 		}
@@ -28,13 +28,13 @@ rofl_result_t vtss_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
 		 * bring up the port
 		 */
 		if (status_phy.link == FALSE || status_phy.link_down == TRUE) {
-			ROFL_ERR("[vtss_l2sw]port.c: attempt to bring up a port that has no link");
+			ROFL_ERR("[vtss_l2sw]port.c: attempt to bring up a port that has no link\n");
 			return ROFL_FAILURE;
 		}
 
 		//Enable forwarding on the specified port (bring up)
 		vtss_port_state_set(NULL, port_no, TRUE);
-		ROFL_ERR("[vtss_l2sw]port.c: port%d to bring up a port that has no link", port_no);
+		ROFL_ERR("[vtss_l2sw]port.c: port%d to bring up a port that has no link\n", port_no);
 
 		return ROFL_SUCCESS;
 	}
@@ -50,7 +50,7 @@ rofl_result_t vtss_l2sw_bring_port_down(vtss_l2sw_port_t* port) {
 
 	if (is_valid_port(port_no)) {
 		if (vtss_phy_status_get(NULL, port_no, &status_phy) != VTSS_RC_OK) {
-			ROFL_ERR("[vtss_l2sw]port.c: can't get status for port phy");
+			ROFL_ERR("[vtss_l2sw]port.c: can't get status for port phy\n");
 			//Can't get status for port phy
 			return ROFL_FAILURE;
 		}

@@ -57,8 +57,14 @@ hal_result_t hal_driver_init(hal_extension_ops_t* extensions,
 	//Init buffer pool
 	bufferpool::init();
 
+	ROFL_INFO("["DRIVER_NAME"] buffer pool initialized\n");
+
+	ROFL_INFO("["DRIVER_NAME"] launching background task manager from hal_driver_init\n");
+
 	//Initialize some form of background task manager
 	launch_background_tasks_manager();
+
+	ROFL_INFO("["DRIVER_NAME"] background task manager launched\n");
 
 	//We don't support any HAL extension
 	memset(extensions, 0, sizeof(hal_extension_ops_t));

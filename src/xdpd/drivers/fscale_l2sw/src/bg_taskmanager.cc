@@ -59,7 +59,7 @@ void check_port_status() {
 	for (port_no = VTSS_PORT_NO_START; port_no < VTSS_PORT_NO_END; port_no++) {
 		if (is_valid_port(port_no) && !is_internal_port(port_no)) {
 			if (vtss_phy_status_get(NULL, port_no, &status_phy) != VTSS_RC_OK) {
-				ROFL_ERR("[fscale_l2sw]bg_taskmanager.cc: can't get status for port phy");
+				ROFL_ERR("[fscale_l2sw]bg_taskmanager.cc: can't get status for port phy\n");
 				//Can't get status for port phy
 				continue;
 			}
@@ -72,15 +72,15 @@ void check_port_status() {
 			if (port->up
 					&& (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
 				//Port changed to down state
-				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port changed to down state, updating state...");
+				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port changed to down state, updating state...\n");
 				update_port_status(iface_name, FALSE);
 				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port state updated");
 			} else if (!port->up
 					&& (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
-				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port changed to up state, updating state...");
+				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port changed to up state, updating state...\n");
 				//Port changed to up state
 				update_port_status(iface_name, TRUE);
-				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port state updated");
+				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port state updated\n");
 			}
 		}
 	}
@@ -215,13 +215,13 @@ void* x86_background_tasks_routine(void* param) {
 
 		sleep(LSW_TIMER_SLOT_MS);
 
-		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: can't get status for port phy");
+		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: updating statistics...\n");
 		update_misc_stats();
 
-		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: can't get status for port phy");
+		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: processing timeouts...\n");
 		process_timeouts();
 
-		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: can't get status for port phy");
+		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: checking port status...\n");
 		check_port_status();
 
 	}
@@ -240,7 +240,7 @@ rofl_result_t launch_background_tasks_manager() {
 	//Set flag
 	bg_continue_execution = true;
 
-	ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: launching background tasks manager");
+	ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: launching background tasks manager\n");
 
 	if (pthread_create(&bg_thread, NULL, x86_background_tasks_routine, NULL)
 			< 0) {
@@ -252,12 +252,12 @@ rofl_result_t launch_background_tasks_manager() {
 
 rofl_result_t stop_background_tasks_manager() {
 
-	ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: stopping background tasks manager");
+	ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: stopping background tasks manager\n");
 
 	bg_continue_execution = false;
 	pthread_join(bg_thread, NULL);
 
-	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: background tasks manager stopped");
+	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: background tasks manager stopped\n");
 	return ROFL_SUCCESS;
 }
 
