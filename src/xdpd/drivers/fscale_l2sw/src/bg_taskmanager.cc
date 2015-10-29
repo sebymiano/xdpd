@@ -74,15 +74,15 @@ void check_port_status() {
 			if (port->up
 					&& (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
 				//Port changed to down state
-				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port changed to down state, updating state...\n");
+				ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: Port changed to down state, updating state...\n");
 				update_port_status(iface_name, FALSE);
-				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port state updated");
+				ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: Port state updated");
 			} else if (!port->up
 					&& (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
-				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port changed to up state, updating state...\n");
+				ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: Port changed to up state, updating state...\n");
 				//Port changed to up state
 				update_port_status(iface_name, TRUE);
-				ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: Port state updated\n");
+				ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: Port state updated\n");
 			}
 		}
 	}
@@ -163,7 +163,7 @@ int process_timeouts() {
 
 #ifdef DEBUG
 		dummy++;
-		//ROFL_DEBUG_VERBOSE("<%s:%d> Checking flow entries expirations %lu:%lu\n",__func__,__LINE__,now.tv_sec,now.tv_usec);
+		//ROFL_INFO("<%s:%d> Checking flow entries expirations %lu:%lu\n",__func__,__LINE__,now.tv_sec,now.tv_usec);
 #endif
 		last_time_entries_checked = now;
 	}
@@ -182,14 +182,14 @@ int process_timeouts() {
 				//TODO process buffers in the storage
 				while (dps->oldest_packet_needs_expiration(&buffer_id)) {
 
-					ROFL_DEBUG_VERBOSE(
+					ROFL_INFO(
 							"<%s:%d> trying to erase a datapacket from storage\n",
 							__func__, __LINE__);
 					if ((pkt = dps->get_packet(buffer_id)) == NULL) {
-						ROFL_DEBUG_VERBOSE("Error in get_packet_wrapper %u\n",
+						ROFL_INFO("Error in get_packet_wrapper %u\n",
 								buffer_id);
 					} else {
-						ROFL_DEBUG_VERBOSE("Datapacket expired correctly %u\n",
+						ROFL_INFO("Datapacket expired correctly %u\n",
 								buffer_id);
 						//Return buffer to bufferpool
 						bufferpool::release_buffer(pkt);
@@ -217,13 +217,13 @@ void* x86_background_tasks_routine(void* param) {
 
 		sleep(1);
 
-		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: updating statistics...\n");
+		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: updating statistics...\n");
 		update_misc_stats();
 
-		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: processing timeouts...\n");
+		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: processing timeouts...\n");
 		process_timeouts();
 
-		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: checking port status...\n");
+		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: checking port status...\n");
 		check_port_status();
 
 	}
@@ -242,7 +242,7 @@ rofl_result_t launch_background_tasks_manager() {
 	//Set flag
 	bg_continue_execution = true;
 
-	ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: launching background tasks manager\n");
+	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: launching background tasks manager\n");
 
 	if (pthread_create(&bg_thread, NULL, x86_background_tasks_routine, NULL)
 			< 0) {
@@ -254,7 +254,7 @@ rofl_result_t launch_background_tasks_manager() {
 
 rofl_result_t stop_background_tasks_manager() {
 
-	ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: stopping background tasks manager\n");
+	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: stopping background tasks manager\n");
 
 	bg_continue_execution = false;
 	pthread_join(bg_thread, NULL);
