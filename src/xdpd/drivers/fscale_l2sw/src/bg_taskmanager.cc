@@ -35,6 +35,8 @@ extern "C" {
 #include "util/time_utils.h"
 #include "io/iface_utils.h"
 
+
+
 using namespace xdpd::gnu_linux;
 
 //Local static variable for background manager thread
@@ -213,7 +215,7 @@ int process_timeouts() {
 void* x86_background_tasks_routine(void* param) {
 	while (bg_continue_execution) {
 
-		sleep(LSW_TIMER_SLOT_MS);
+		usleep(LSW_TIMER_SLOT_MS*1000);
 
 		ROFL_DEBUG_VERBOSE("[fscale_l2sw]bg_taskmanager.cc: updating statistics...\n");
 		update_misc_stats();
