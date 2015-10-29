@@ -25,8 +25,13 @@
 #include "util/time_utils.h"
 #include "vtss_l2sw/vtss_l2sw.h"
 #include "vtss_l2sw/ports.h"
+
+extern "C" {
+
 #include <vtss_api/vtss_api.h>
 #include <fsl_utils/fsl_utils.h>
+
+}
 #include "util/time_utils.h"
 #include "io/iface_utils.h"
 
