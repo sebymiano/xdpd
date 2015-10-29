@@ -1,11 +1,15 @@
 #include "ports.h"
 #include "vtss_l2sw.h"
 #include <stdio.h>
+#include <rofl/common/utils/c_logger.h>
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/pipeline/switch_port.h>
 #include <vtss_api/vtss_api.h>
+extern "C" {
+
 #include <fsl_utils/fsl_utils.h>
 
+}
 
 rofl_result_t vtss_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
 	int port_no;
