@@ -26,9 +26,9 @@
 #include "vtss_l2sw/vtss_l2sw.h"
 #include "vtss_l2sw/ports.h"
 
+#include <vtss_api/vtss_api.h>
 extern "C" {
 
-#include <vtss_api/vtss_api.h>
 #include <fsl_utils/fsl_utils.h>
 
 }
