@@ -44,10 +44,12 @@ rofl_result_t update_port_status(char * name, bool up) {
 		if (vtss_l2sw_bring_port_up(vtss_port) != ROFL_SUCCESS) {
 			return ROFL_FAILURE;
 		}
+		port->up = true;
 	} else {
 		if (vtss_l2sw_bring_port_down(vtss_port) != ROFL_SUCCESS) {
 			return ROFL_FAILURE;
 		}
+		port->up = false;
 	}
 
 	//Notify the change of state to the CMM
