@@ -27,7 +27,7 @@
 //Number of buffers available for I/O. Dimension according to the 
 //the maximum number of interfaces that can run at the same time
 //Warning: changing the size of this variable can have ARNING:
-#define IO_BUFFERPOOL_CAPACITY 2048*16 //32K buffers
+#define IO_BUFFERPOOL_CAPACITY 2048*16-2048 //32K buffers
 
 
 //Buffer storage(PKT_IN) max buffers

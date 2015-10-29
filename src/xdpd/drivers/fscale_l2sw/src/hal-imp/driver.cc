@@ -52,6 +52,8 @@ hal_result_t hal_driver_init(hal_extension_ops_t* extensions,
 		return HAL_FAILURE;
 	}
 
+	ROFL_INFO("["DRIVER_NAME"] call to vtss_l2sw_init() finished with success, L2Switch port added to the physical switch\n");
+
 	//Init buffer pool
 	bufferpool::init();
 
