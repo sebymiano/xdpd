@@ -18,7 +18,6 @@
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/hal/cmm.h>
 #include "iface_utils.h"
-#include "iomanager.h"
 
 #include "../vtss_l2sw/ports.h"
 
