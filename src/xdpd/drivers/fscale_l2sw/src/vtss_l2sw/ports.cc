@@ -34,7 +34,7 @@ rofl_result_t vtss_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
 
 		//Enable forwarding on the specified port (bring up)
 		vtss_port_state_set(NULL, port_no, TRUE);
-		ROFL_ERR("[vtss_l2sw]port.c: port%d to bring up a port that has no link\n", port_no);
+		ROFL_ERR("[vtss_l2sw]port.c: port %d activated\n", port_no);
 
 		return ROFL_SUCCESS;
 	}
@@ -57,6 +57,7 @@ rofl_result_t vtss_l2sw_bring_port_down(vtss_l2sw_port_t* port) {
 
 		//Disable forwarding on the specified port (bring down)
 		vtss_port_state_set(NULL, port_no, FALSE);
+		ROFL_ERR("[vtss_l2sw]port.c: port %d disactivated\n", port_no);
 
 		return ROFL_SUCCESS;
 	}

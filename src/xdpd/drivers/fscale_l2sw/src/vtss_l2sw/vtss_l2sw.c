@@ -54,6 +54,9 @@ rofl_result_t vtss_l2sw_init() {
 					return ROFL_FAILURE;
 				}
 
+				vtss_port_state_set(NULL, port_no, FALSE);
+				port->up = false;
+
 			} else {
 				//Enable forwarding only on the internal ports in the initialization phase
 				vtss_port_state_set(NULL, port_no, TRUE);
