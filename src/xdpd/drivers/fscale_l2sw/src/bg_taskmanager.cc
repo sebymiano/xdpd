@@ -70,26 +70,21 @@ void check_port_status() {
 
 			port = physical_switch_get_port_by_name(iface_name);
 
-			if (port->is_attached_to_sw) {
-				if (port->up
-						&& (status_phy.link == FALSE
-								|| status_phy.link_down == TRUE)) {
-					//Port changed to down state
-					ROFL_INFO(
-							"[fscale_l2sw]bg_taskmanager.cc: Port changed to down state, updating state...\n");
-					update_port_status(iface_name, FALSE);
-					ROFL_INFO(
-							"[fscale_l2sw]bg_taskmanager.cc: Port state updated");
-				} else if (!port->up
-						&& (status_phy.link == TRUE
-								&& status_phy.link_down == FALSE)) {
-					ROFL_INFO(
-							"[fscale_l2sw]bg_taskmanager.cc: Port changed to up state, updating state...\n");
-					//Port changed to up state
-					update_port_status(iface_name, TRUE);
-					ROFL_INFO(
-							"[fscale_l2sw]bg_taskmanager.cc: Port state updated\n");
-				}
+			if (port->up
+					&& (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
+				//Port changed to down state
+				ROFL_INFO(
+						"[fscale_l2sw]bg_taskmanager.cc: Port changed to down state, updating state...\n");
+				update_port_status(iface_name, FALSE);
+				ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: Port state updated");
+			} else if (!port->up
+					&& (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
+				ROFL_INFO(
+						"[fscale_l2sw]bg_taskmanager.cc: Port changed to up state, updating state...\n");
+				//Port changed to up state
+				update_port_status(iface_name, TRUE);
+				ROFL_INFO(
+						"[fscale_l2sw]bg_taskmanager.cc: Port state updated\n");
 			}
 		}
 	}
