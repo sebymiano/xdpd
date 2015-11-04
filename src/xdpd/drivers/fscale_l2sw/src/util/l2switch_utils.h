@@ -7,7 +7,7 @@
 //Extern C
 ROFL_BEGIN_DECLS
 
-bool is_l2_entry(const of1x_flow_entry_t * const entry);
+bool is_l2_entry(of1x_flow_entry_t *entry);
 
 //Extern C
 ROFL_END_DECLS
