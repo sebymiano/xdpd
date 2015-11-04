@@ -22,7 +22,7 @@ bool is_l2_entry(of1x_flow_entry_t * entry){
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_IN_PHY_PORT);
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_DST);
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_SRC);
-	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_VLAN_VID);
+	//bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_VLAN_VID);
 
 	and_matches_bitmap = bitmap128_and(&entry->matches.match_bm, &no_l2_bitmap);
 	and_wildcard_bitmap = bitmap128_and(&entry->matches.wildcard_bm, &no_l2_bitmap);

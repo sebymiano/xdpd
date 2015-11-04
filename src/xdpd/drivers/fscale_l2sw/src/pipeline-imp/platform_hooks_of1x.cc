@@ -2,9 +2,6 @@
 #include <rofl/datapath/pipeline/openflow/openflow1x/of1x_async_events_hooks.h>
 #include <rofl/datapath/pipeline/openflow/openflow1x/of1x_switch.h>
 #include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_flow_table.h>
-#include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_pipeline.h>
-#include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_flow_entry.h>
-#include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_statistics.h>
 #include <rofl/datapath/hal/openflow/openflow1x/of1x_cmm.h>
 #include <rofl/common/utils/c_logger.h>
 #include "../config.h"
@@ -12,6 +9,7 @@
 #include "../io/bufferpool.h"
 #include "../io/datapacketx86.h"
 #include "../pipeline-imp/ls_internal_state.h"
+#include "../util/l2switch_utils.h"
 
 using namespace xdpd::gnu_linux;
 
@@ -29,7 +27,7 @@ rofl_result_t platform_post_init_of1x_switch(of1x_switch_t* sw) {
 	table = sw->pipeline.tables;
 
 	for (i = 0; i < sw->pipeline.num_of_tables; ++i) {
-		//Set appropiate flags (default: send packet to controller)
+		//Set appropriate flags (default: send packet to controller)
 		table->default_action = OF1X_TABLE_MISS_CONTROLLER;
 	}
 
@@ -82,6 +80,13 @@ void platform_of1x_notify_flow_removed(const of1x_switch_t* sw,
 }
 
 void plaftorm_of1x_add_entry_hook(of1x_flow_entry_t* new_entry) {
+	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
+
+	if(!is_l2_entry(new_entry)){
+		ROFL_ERR("["DRIVER_NAME"] not l2 entry");
+		return;
+	}
+
 
 }
 

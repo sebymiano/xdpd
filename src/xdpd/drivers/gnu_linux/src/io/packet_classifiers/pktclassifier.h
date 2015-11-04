@@ -7,11 +7,7 @@
 
 #include <rofl_datapath.h>
 
-#if 0
-	#include "c_pktclassifier/c_pktclassifier.h"
-#else
-	#include "c_types_pktclassifier/c_types_pktclassifier.h"
-#endif
+#include "c_types_pktclassifier/c_types_pktclassifier.h"
 
 //fwd decl
 struct classifier_state;
