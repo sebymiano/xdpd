@@ -7,12 +7,20 @@
 #include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_statistics.h>
 #include "../../../config.h"
 #include "../../../vtss_l2sw/ports.h"
+#include "../../../util/l2switch_utils.h"
 #include <vtss_api/vtss_api.h>
 extern "C" {
 
 #include <fsl_utils/fsl_utils.h>
 
 }
+
+#include "../../../io/bufferpool.h"
+#include "../../../io/datapacket_storage.h"
+#include "../../../io/datapacketx86.h"
+#include "../../../pipeline-imp/ls_internal_state.h"
+
+using namespace xdpd::gnu_linux;
 
 //Port config
 
@@ -146,7 +154,23 @@ hal_result_t hal_driver_of1x_set_pipeline_config(uint64_t dpid,
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return HAL_FAILURE;
+	of_switch_t* lsw;
+
+	//Recover switch
+	lsw = physical_switch_get_logical_switch_by_dpid(dpid);
+
+	//Check switch and port
+	if (!lsw) {
+		//TODO: log this... should never happen
+		assert(0);
+		return HAL_FAILURE;
+	}
+
+	//Simply store the new config
+	((of1x_switch_t*) lsw)->pipeline.capabilities = flags;
+	((of1x_switch_t*) lsw)->pipeline.miss_send_len = miss_send_len;
+
+	return HAL_SUCCESS;
 }
 
 /**
@@ -162,6 +186,32 @@ hal_result_t hal_driver_of1x_set_table_config(uint64_t dpid,
 		unsigned int table_id, of1x_flow_table_miss_config_t config) {
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
+
+	of1x_switch_t* lsw;
+	unsigned int i;
+
+	//Recover switch
+	lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+
+	//Check switch and port
+	if (!lsw
+			|| ((table_id != OF1X_FLOW_TABLE_ALL)
+					&& (table_id >= lsw->pipeline.num_of_tables))) {
+		//TODO: log this... should never happen
+		assert(0);
+		return HAL_FAILURE;
+	}
+
+	//Simply store the new config
+	if (table_id == OF1X_FLOW_TABLE_ALL) {
+		for (i = 0; i < lsw->pipeline.num_of_tables; i++) {
+			lsw->pipeline.tables[i].default_action = config;
+		}
+	} else {
+		lsw->pipeline.tables[table_id].default_action = config;
+	}
+
+	//TODO: Here I should modify the default rule in the switch
 
 	return HAL_SUCCESS;
 }
@@ -207,6 +257,49 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_add(uint64_t dpid,
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
+	of1x_switch_t* lsw;
+	rofl_of1x_fm_result_t result;
+
+	//Recover port
+	lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+
+	if (!lsw) {
+		assert(0);
+		return HAL_FM_FAILURE;
+	}
+
+	if (table_id >= lsw->pipeline.num_of_tables)
+		return HAL_FM_FAILURE;
+
+	if (!is_l2_entry(*flow_entry)) {
+		ROFL_INFO(
+				"["DRIVER_NAME"] hal_driver_of1x_process_flow_mod_add: This driver accepts only l2 entries");
+		return HAL_FM_FAILURE;
+	}
+
+	if ((result = of1x_add_flow_entry_table(&lsw->pipeline, table_id,
+			flow_entry, check_overlap, reset_counts)) != ROFL_OF1X_FM_SUCCESS)
+		return hal_fm_map_pipeline_retcode(result);
+
+	if (buffer_id && buffer_id != OF1XP_NO_BUFFER) {
+
+		datapacket_t* pkt =
+				((struct logical_switch_internals*) lsw->platform_state)->storage->get_packet(
+						buffer_id);
+
+		if (!pkt) {
+			//Return failure (buffer ID was invalid/expired)
+			return HAL_FM_FAILURE;
+		}
+
+		of_process_packet_pipeline(ROFL_PIPELINE_LOCKED_TID, (of_switch_t*) lsw,
+				pkt);
+	}
+
+#ifdef DEBUG
+	of1x_dump_table(&lsw->pipeline.tables[table_id], false);
+#endif
+
 	return HAL_FM_SUCCESS;
 }
 
@@ -228,6 +321,45 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_modify(uint64_t dpid,
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
+	of1x_switch_t* lsw;
+	rofl_of1x_fm_result_t result;
+
+	//Recover port
+	lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+
+	if (!lsw) {
+		assert(0);
+		return HAL_FM_FAILURE;
+	}
+
+	if (table_id >= lsw->pipeline.num_of_tables)
+		return HAL_FM_INVALID_TABLE_ID_FAILURE;
+
+	if (!is_l2_entry(*flow_entry)) {
+		ROFL_INFO(
+				"["DRIVER_NAME"] hal_driver_of1x_process_flow_mod_modify: This driver accepts only l2 entries");
+		return HAL_FM_FAILURE;
+	}
+
+	if ((result = of1x_modify_flow_entry_table(&lsw->pipeline, table_id,
+			flow_entry, strictness, reset_counts)) != ROFL_OF1X_FM_SUCCESS)
+		return hal_fm_map_pipeline_retcode(result);
+
+	if (buffer_id && buffer_id != OF1XP_NO_BUFFER) {
+
+		datapacket_t* pkt =
+				((struct logical_switch_internals*) lsw->platform_state)->storage->get_packet(
+						buffer_id);
+
+		if (!pkt) {
+			//Return failure (buffer ID was invalid/expired)
+			return HAL_FM_FAILURE;
+		}
+
+		of_process_packet_pipeline(ROFL_PIPELINE_LOCKED_TID, (of_switch_t*) lsw,
+				pkt);
+	}
+
 	return HAL_FM_SUCCESS;
 }
 
@@ -248,6 +380,43 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_delete(uint64_t dpid,
 		uint32_t out_group, of1x_flow_removal_strictness_t strictness) {
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
+
+	of1x_switch_t* lsw;
+	unsigned int i;
+	rofl_of1x_fm_result_t result;
+
+	//Recover port
+	lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+
+	if (!lsw) {
+		assert(0);
+		return HAL_FM_FAILURE;
+	}
+
+	if (table_id
+			>= lsw->pipeline.num_of_tables&& table_id != OF1X_FLOW_TABLE_ALL)
+		return HAL_FM_INVALID_TABLE_ID_FAILURE;
+
+	if (!is_l2_entry(flow_entry)) {
+		ROFL_INFO(
+				"["DRIVER_NAME"] hal_driver_of1x_process_flow_mod_delete: This driver accepts only l2 entries");
+		return HAL_FM_FAILURE;
+	}
+
+	if (table_id == OF1X_FLOW_TABLE_ALL) {
+		for (i = 0; i < lsw->pipeline.num_of_tables; i++) {
+			if ((result = of1x_remove_flow_entry_table(&lsw->pipeline, i,
+					flow_entry, strictness, out_port, out_group))
+					!= ROFL_OF1X_FM_SUCCESS)
+				return hal_fm_map_pipeline_retcode(result);
+		}
+	} else {
+		//Single table
+		if ((result = of1x_remove_flow_entry_table(&lsw->pipeline, table_id,
+				flow_entry, strictness, out_port, out_group))
+				!= ROFL_OF1X_FM_SUCCESS)
+			return hal_fm_map_pipeline_retcode(result);
+	}
 
 	return HAL_FM_SUCCESS;
 }
@@ -275,7 +444,22 @@ of1x_stats_flow_msg_t* hal_driver_of1x_get_flow_stats(uint64_t dpid,
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return NULL;
+	of1x_switch_t* lsw;
+
+	//Recover port
+	lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+
+	if (!lsw) {
+		assert(0);
+		return NULL;
+	}
+
+	if (table_id
+			>= lsw->pipeline.num_of_tables&& table_id != OF1X_FLOW_TABLE_ALL)
+		return NULL;
+
+	return of1x_get_flow_stats(&lsw->pipeline, table_id, cookie, cookie_mask,
+			out_port, out_group, matches);
 }
 
 /**
@@ -297,7 +481,22 @@ of1x_stats_flow_aggregate_msg_t* hal_driver_of1x_get_flow_aggregate_stats(
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return NULL;
+	of1x_switch_t* lsw;
+
+	//Recover port
+	lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+
+	if (!lsw) {
+		assert(0);
+		return NULL;
+	}
+
+	if (table_id
+			>= lsw->pipeline.num_of_tables&& table_id != OF1X_FLOW_TABLE_ALL)
+		return NULL;
+
+	return of1x_get_flow_aggregate_stats(&lsw->pipeline, table_id, cookie,
+			cookie_mask, out_port, out_group, matches);
 }
 /**
  * @name    hal_driver_of1x_group_mod_add
@@ -311,7 +510,7 @@ hal_gm_result_t hal_driver_of1x_group_mod_add(uint64_t dpid,
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return HAL_GM_SUCCESS;
+	return HAL_GM_FAILURE;
 }
 
 /**
@@ -326,7 +525,7 @@ hal_gm_result_t hal_driver_of1x_group_mod_modify(uint64_t dpid,
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return HAL_GM_SUCCESS;
+	return HAL_GM_FAILURE;
 }
 
 /**
@@ -340,7 +539,7 @@ hal_gm_result_t hal_driver_of1x_group_mod_delete(uint64_t dpid, uint32_t id) {
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return HAL_GM_SUCCESS;
+	return HAL_GM_FAILURE;
 }
 
 /**
