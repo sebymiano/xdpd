@@ -14,6 +14,7 @@
 
 #include "../io/datapacketx86.h"
 #include "../io/bufferpool.h"
+#include "../io/packet_classifiers/pktclassifier.h"
 
 
 //

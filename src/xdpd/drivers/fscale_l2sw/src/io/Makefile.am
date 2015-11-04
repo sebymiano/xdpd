@@ -12,7 +12,7 @@ libxdpd_driver_fscale_l2sw_src_io_la_SOURCES = \
 
 #Define classifier
 #CLASSIFIER_LIB=packet_classifiers/c_pktclassifier/libxdpd_driver_netfpga10g_io_classifiers_c.la
-#CLASSIFIER_LIB=packet_classifiers/c_types_pktclassifier/libxdpd_driver_fscale_l2sw_io_classifiers_c_types.la
+CLASSIFIER_LIB=packet_classifiers/c_types_pktclassifier/libxdpd_driver_fscale_l2sw_io_classifiers_c_types.la
 
 
 libxdpd_driver_fscale_l2sw_src_io_la_LIBADD =\
