@@ -10,6 +10,7 @@
 #include "../io/datapacketx86.h"
 #include "../pipeline-imp/ls_internal_state.h"
 #include "../util/l2switch_utils.h"
+#include "../vtss_l2sw/vtss_l2sw.h"
 
 using namespace xdpd::gnu_linux;
 
@@ -52,7 +53,8 @@ rofl_result_t platform_pre_destroy_of1x_switch(of1x_switch_t* sw) {
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	struct logical_switch_internals* ls_int = (struct logical_switch_internals*) sw->platform_state;
+	struct logical_switch_internals* ls_int =
+			(struct logical_switch_internals*) sw->platform_state;
 
 	delete ls_int->storage;
 	free(sw->platform_state);
@@ -77,16 +79,19 @@ void platform_of1x_notify_flow_removed(const of1x_switch_t* sw,
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
+	hal_cmm_process_of1x_flow_removed(sw->dpid, (uint8_t)reason, removed_flow_entry);
+
 }
 
 void plaftorm_of1x_add_entry_hook(of1x_flow_entry_t* new_entry) {
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	if(!is_l2_entry(new_entry)){
+	if (!is_l2_entry(new_entry)) {
 		ROFL_ERR("["DRIVER_NAME"] not l2 entry");
 		return;
 	}
 
+	vtss_l2sw_add_flow_entry(new_entry);
 
 }
 
@@ -96,6 +101,15 @@ void platform_of1x_modify_entry_hook(of1x_flow_entry_t* old_entry,
 }
 
 void platform_of1x_remove_entry_hook(of1x_flow_entry_t* entry) {
+
+	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
+
+	if (!is_l2_entry(entry)) {
+		ROFL_ERR("["DRIVER_NAME"] not l2 entry");
+		return;
+	}
+
+	vtss_l2sw_delete_flow_entry(entry);
 
 }
 

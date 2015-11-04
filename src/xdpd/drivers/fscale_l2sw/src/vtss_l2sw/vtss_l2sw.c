@@ -6,6 +6,7 @@
 #include "ports.h"
 #include <rofl/common/utils/c_logger.h>
 #include <vtss_api/vtss_api.h>
+#include <vtss_api/vtss_misc_api.h>
 #include <board_init/board_init.h>
 #include <fsl_utils/fsl_utils.h>
 #include <port_setup/port_setup.h>
@@ -15,6 +16,8 @@
 #include <sys/times.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
+#include "flow_entry.h"
 
 rofl_result_t vtss_l2sw_init() {
 	vtss_inst_create_t create;
@@ -27,12 +30,11 @@ rofl_result_t vtss_l2sw_init() {
 	switch_port_t* port;
 
 	for (group = 0; group < VTSS_TRACE_GROUP_COUNT; group++) {
-	 (void)vtss_trace_conf_get(group, &conf);
-	 for (layer = 0; layer < VTSS_TRACE_LAYER_COUNT; layer++)
-	 conf.level[layer] = VTSS_TRACE_LEVEL_ERROR;
-	 (void)vtss_trace_conf_set(group, &conf);
-	 }
-
+		(void) vtss_trace_conf_get(group, &conf);
+		for (layer = 0; layer < VTSS_TRACE_LAYER_COUNT; layer++)
+			conf.level[layer] = VTSS_TRACE_LEVEL_ERROR;
+		(void) vtss_trace_conf_set(group, &conf);
+	}
 
 	vtss_inst_get(VTSS_TARGET_SEVILLE, &create);
 	vtss_inst_create(&create, &inst);
@@ -88,6 +90,28 @@ rofl_result_t vtss_l2sw_destroy() {
 		if (array[i] != NULL) {
 			destroy_port(array[i]);
 		}
+	}
+
+	return ROFL_SUCCESS;
+}
+
+rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
+	vtss_ace_t acl_entry;
+
+	if (vtss_l2sw_generate_acl_entry_matches(&acl_entry, entry) != VTSS_RC_OK) {
+		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_add_flow_entry failed");
+		return ROFL_FAILURE;
+	}
+
+	if (vtss_l2sw_generate_acl_entry_actions(&acl_entry, entry) != VTSS_RC_OK) {
+		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_generate_acl_entry_actions failed");
+		return ROFL_FAILURE;
+	}
+
+	/* Add ACL entry */
+	if (vtss_ace_add(NULL, VTSS_ACE_ID_LAST, &acl_entry) != VTSS_RC_OK) {
+		ROFL_ERR("vtss_l2sw.c: vtss_ace_add failed, unable to add the acl");
+		return ROFL_FAILURE;
 	}
 
 	return ROFL_SUCCESS;
