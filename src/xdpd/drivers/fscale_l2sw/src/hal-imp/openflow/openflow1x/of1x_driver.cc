@@ -257,18 +257,22 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_add(uint64_t dpid, uint8_t tabl
 	}
 
 	if (table_id >= lsw->pipeline.num_of_tables) {
-		ROFL_INFO("["DRIVER_NAME"] calling %s()\n: invalid table id %u\n", __FUNCTION__, table_id);
+		ROFL_INFO("["DRIVER_NAME"] calling %s(): invalid table id %u\n", __FUNCTION__, table_id);
 		return HAL_FM_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n: checking if entry is only a l2 entry\n", __FUNCTION__);
+#ifdef DEBUG
+	of1x_dump_flow_entry(*flow_entry, false);
+#endif
+
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking if entry is only a l2 entry\n", __FUNCTION__);
 
 	if (!is_l2_entry(*flow_entry)) {
 		ROFL_INFO("["DRIVER_NAME"] hal_driver_of1x_process_flow_mod_add: This driver accepts only l2 entries\n");
 		return HAL_FM_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n: entry is only l2, adding entry into LSI table...\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): entry is only l2, adding entry into LSI table...\n", __FUNCTION__);
 
 	if ((result = of1x_add_flow_entry_table(&lsw->pipeline, table_id, flow_entry, check_overlap, reset_counts))
 			!= ROFL_OF1X_FM_SUCCESS)
@@ -286,7 +290,7 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_add(uint64_t dpid, uint8_t tabl
 		of_process_packet_pipeline(ROFL_PIPELINE_LOCKED_TID, (of_switch_t*) lsw, pkt);
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n: entry added\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): entry added\n", __FUNCTION__);
 
 #ifdef DEBUG
 	of1x_dump_table(&lsw->pipeline.tables[table_id], false);
@@ -310,7 +314,7 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_add(uint64_t dpid, uint8_t tabl
 hal_fm_result_t hal_driver_of1x_process_flow_mod_modify(uint64_t dpid, uint8_t table_id, of1x_flow_entry_t** flow_entry,
 		uint32_t buffer_id, of1x_flow_removal_strictness_t strictness, bool reset_counts) {
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] calling %s()", __FUNCTION__);
 
 	of1x_switch_t* lsw;
 	rofl_of1x_fm_result_t result;
@@ -325,17 +329,21 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_modify(uint64_t dpid, uint8_t t
 
 	if (table_id >= lsw->pipeline.num_of_tables) {
 		return HAL_FM_INVALID_TABLE_ID_FAILURE;
-		ROFL_INFO("["DRIVER_NAME"] calling %s()\n: invalid table id %u\n", __FUNCTION__, table_id);
+		ROFL_INFO("["DRIVER_NAME"] calling %s(): invalid table id %u\n", __FUNCTION__, table_id);
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n: checking if entry is only a l2 entry\n", __FUNCTION__);
+#ifdef DEBUG
+	of1x_dump_flow_entry(*flow_entry, false);
+#endif
+
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking if entry is only a l2 entry\n", __FUNCTION__);
 
 	if (!is_l2_entry(*flow_entry)) {
 		ROFL_INFO("["DRIVER_NAME"] hal_driver_of1x_process_flow_mod_modify: This driver accepts only l2 entries\n");
 		return HAL_FM_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n: entry is only l2, modifying entry into LSI table...\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): entry is only l2, modifying entry into LSI table...\n", __FUNCTION__);
 
 	if ((result = of1x_modify_flow_entry_table(&lsw->pipeline, table_id, flow_entry, strictness, reset_counts))
 			!= ROFL_OF1X_FM_SUCCESS)
@@ -353,7 +361,7 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_modify(uint64_t dpid, uint8_t t
 		of_process_packet_pipeline(ROFL_PIPELINE_LOCKED_TID, (of_switch_t*) lsw, pkt);
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n: entry added\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): entry added\n", __FUNCTION__);
 
 	return HAL_FM_SUCCESS;
 }
@@ -389,17 +397,21 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_delete(uint64_t dpid, uint8_t t
 
 	if (table_id >= lsw->pipeline.num_of_tables && table_id != OF1X_FLOW_TABLE_ALL) {
 		return HAL_FM_INVALID_TABLE_ID_FAILURE;
-		ROFL_INFO("["DRIVER_NAME"] calling %s()\n: invalid table id %u", __FUNCTION__, table_id);
+		ROFL_INFO("["DRIVER_NAME"] calling %s(): invalid table id %u", __FUNCTION__, table_id);
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n: checking if entry is only a l2 entry\n", __FUNCTION__);
+#ifdef DEBUG
+	of1x_dump_flow_entry(*flow_entry, false);
+#endif
+
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking if entry is only a l2 entry\n", __FUNCTION__);
 
 	if (!is_l2_entry(flow_entry)) {
 		ROFL_INFO("["DRIVER_NAME"] hal_driver_of1x_process_flow_mod_delete: This driver accepts only l2 entries\n");
 		return HAL_FM_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n: entry is only l2, remove entry from table...\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): entry is only l2, remove entry from table...\n", __FUNCTION__);
 
 	if (table_id == OF1X_FLOW_TABLE_ALL) {
 		for (i = 0; i < lsw->pipeline.num_of_tables; i++) {
@@ -414,7 +426,7 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_delete(uint64_t dpid, uint8_t t
 			return hal_fm_map_pipeline_retcode(result);
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s()\n: entry removed\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): entry removed\n", __FUNCTION__);
 
 	return HAL_FM_SUCCESS;
 }
