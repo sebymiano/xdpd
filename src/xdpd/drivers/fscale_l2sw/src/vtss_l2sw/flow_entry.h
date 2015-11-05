@@ -18,6 +18,8 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 
 vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_entry_t* of1x_entry);
 
+bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, int port_no);
+
 //C++ extern C
 ROFL_END_DECLS
 

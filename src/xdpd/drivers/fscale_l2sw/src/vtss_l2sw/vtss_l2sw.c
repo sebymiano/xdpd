@@ -124,3 +124,8 @@ rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 
 	return ROFL_SUCCESS;
 }
+
+rofl_result_t vtss_l2sw_delete_flow_entry(of1x_flow_entry_t* entry){
+	//TODO: Implement this function
+	return ROFL_FAILURE;
+}
