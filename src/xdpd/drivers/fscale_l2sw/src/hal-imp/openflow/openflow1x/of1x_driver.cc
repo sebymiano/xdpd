@@ -401,7 +401,7 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_delete(uint64_t dpid, uint8_t t
 	}
 
 #ifdef DEBUG
-	of1x_dump_flow_entry(*flow_entry, false);
+	of1x_dump_flow_entry(flow_entry, false);
 #endif
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking if entry is only a l2 entry\n", __FUNCTION__);

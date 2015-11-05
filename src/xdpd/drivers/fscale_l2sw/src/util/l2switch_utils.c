@@ -41,7 +41,7 @@ bool is_l2_entry(of1x_flow_entry_t * entry) {
 		//&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_DST)
 		//&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_SRC)){
 		ROFL_INFO("["DRIVER_NAME"] %s(): there aren't matches different from l2 but there are no l2 matches also\n", __FUNCTION__);
-		return false;
+		//return false;
 	}
 
 	if (!actions_are_only_l2(entry->inst_grp.instructions, entry->inst_grp.num_of_instructions)) {
