@@ -100,27 +100,37 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 		case OF1X_AT_OUTPUT:
 			port = of1x_get_packet_action_field32(action);
 			ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions   ENTRY port %d\n", port);
-
-			if (is_valid_port(port) && !is_internal_port(port)) {
-				//TODO: Here I should check for flooding or mirroring ecc...
-				acl_entry->action.learn = false;
-				acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_REDIR;
-				acl_entry->action.port_list[port] = true;
-			} else if (port == OF1X_PORT_CONTROLLER) {
+			switch (of1x_get_packet_action_field32(action)) {
+			case OF1X_PORT_CONTROLLER:
 				ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: action for redirect packets to controller\n");
 				acl_entry->action.learn = false;
 				/* Enable CPU redirection */
 				acl_entry->action.cpu = true;
 
 				/*
-				// Disable forwarding of the frames
-				acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
-				memset(acl_entry->action.port_list, FALSE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->action.port_list[0]));
-				*/
-
-			} else {
-				ROFL_ERR("["DRIVER_NAME"] flow_entry.c: wrong port in vtss_l2sw_generate_acl_entry_actions\n");
-				assert(0);
+				 // Disable forwarding of the frames
+				 acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
+				 memset(acl_entry->action.port_list, FALSE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->action.port_list[0]));
+				 */
+				break;
+			case OF1X_PORT_FLOOD:
+			case OF1X_PORT_NORMAL:
+			case OF1X_PORT_ALL:
+			case OF1X_PORT_IN_PORT:
+				ROFL_ERR("["DRIVER_NAME"] flow_entry.c: action not supported\n");
+				return VTSS_RC_ERROR;
+				break;
+			default:
+				if (is_valid_port(port) && !is_internal_port(port)) {
+					//TODO: Here I should check for flooding or mirroring ecc...
+					acl_entry->action.learn = false;
+					acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_REDIR;
+					acl_entry->action.port_list[port] = true;
+				} else {
+					ROFL_ERR("["DRIVER_NAME"] flow_entry.c: wrong port in vtss_l2sw_generate_acl_entry_actions\n");
+					assert(0);
+				}
+				break;
 			}
 			break;
 		default:
