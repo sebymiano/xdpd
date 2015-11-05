@@ -3,8 +3,9 @@
 #include <stdint.h>
 #include <rofl/common/utils/c_logger.h>
 #include <fsl_utils/fsl_utils.h>
+#include "../config.h"
 
-static int acl_id = 1;
+int aclId = 1;
 
 vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_entry_t* of1x_entry) {
 
@@ -12,23 +13,36 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 	of1x_match_type_t type = OF1X_MATCH_MAX;
 	uint8_t port_no;
 
-	ROFL_DEBUG("%s  %d num_of_matches: %x", __FILE__, __LINE__, of1x_entry->matches.num_elements);
+	ROFL_DEBUG("["DRIVER_NAME"] %s num_of_matches: %x\n", __FUNCTION__, of1x_entry->matches.num_elements);
 
-	if (acl_id == VTSS_ACE_ID_LAST) {
-		ROFL_ERR("flow_entry.c: reached maximum number of acl rules");
+	if (aclId == VTSS_ACE_ID_LAST) {
+		ROFL_ERR("["DRIVER_NAME"] flow_entry.c: reached maximum number of acl rules\n");
 		return VTSS_RC_ERROR;
+	}
+
+	if (of1x_entry->matches.num_elements == 0) {
+		if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ANY, acl_entry) != VTSS_RC_OK) {
+			ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: failed to initialize ACL entry\n");
+			return VTSS_RC_ERROR;
+		}
+		ROFL_DEBUG("["DRIVER_NAME"] %s no matches for this entry, acl initialized with type ANY\n", __FUNCTION__);
+
+		/* Monitor all ports */
+		memset(acl_entry->port_list, TRUE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->port_list[0]));
+
+		return VTSS_RC_OK;
 	}
 
 	//Go through all the matches and set entry matches
 	for (match = of1x_entry->matches.head; match; match = match->next) {
-		ROFL_DEBUG("%s  %d  of1x_entry->type : %x, ", __FILE__, __LINE__, match->type);
+		ROFL_DEBUG("["DRIVER_NAME"] of1x_entry->type : %x \n", match->type);
 
 		switch (match->type) {
 		case OF1X_MATCH_IN_PORT:
 			port_no = of1x_get_match_value32(match);
 
 			if (!add_or_update_match_in_port(acl_entry, type, port_no)) {
-				ROFL_ERR("vtss_l2sw_generate_acl_entry: add_or_update_match_in_port failed");
+				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_match_in_port failed\n");
 				return VTSS_RC_ERROR;
 			}
 
@@ -37,7 +51,7 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 			port_no = of1x_get_match_value32(match);
 
 			if (!add_or_update_match_in_port(acl_entry, type, port_no)) {
-				ROFL_ERR("vtss_l2sw_generate_acl_entry: add_or_update_match_in_port failed");
+				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_match_in_port failed\n");
 				return VTSS_RC_ERROR;
 			}
 
@@ -85,15 +99,27 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 
 		case OF1X_AT_OUTPUT:
 			port = of1x_get_packet_action_field32(action);
-			ROFL_DEBUG(" vtss_l2sw_generate_acl_entry_actions   ENTRY port %d ", port);
+			ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions   ENTRY port %d\n", port);
 
 			if (is_valid_port(port) && !is_internal_port(port)) {
 				//TODO: Here I should check for flooding or mirroring ecc...
 				acl_entry->action.learn = false;
 				acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_REDIR;
 				acl_entry->action.port_list[port] = true;
+			} else if (port == OF1X_PORT_CONTROLLER) {
+				ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: action for redirect packets to controller\n");
+				acl_entry->action.learn = false;
+				/* Enable CPU redirection */
+				acl_entry->action.cpu = true;
+
+				/*
+				// Disable forwarding of the frames
+				acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
+				memset(acl_entry->action.port_list, FALSE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->action.port_list[0]));
+				*/
+
 			} else {
-				ROFL_ERR("flow_entry.c: wrong port in vtss_l2sw_generate_acl_entry_actions");
+				ROFL_ERR("["DRIVER_NAME"] flow_entry.c: wrong port in vtss_l2sw_generate_acl_entry_actions\n");
 				assert(0);
 			}
 			break;
@@ -110,7 +136,8 @@ bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, 
 		if (type == OF1X_MATCH_MAX) {
 			//This is the first match
 			if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ANY, acl_entry) != VTSS_RC_OK) {
-				ROFL_ERR("vtss_l2sw_generate_acl_entry: failed to initialize ACL entry for OF1X_MATCH_IN_PORT");
+				ROFL_ERR(
+						"["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: failed to initialize ACL entry for OF1X_MATCH_IN_PORT\n");
 				return VTSS_RC_ERROR;
 			}
 

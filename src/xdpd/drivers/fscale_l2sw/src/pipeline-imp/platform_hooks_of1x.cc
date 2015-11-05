@@ -87,7 +87,7 @@ void plaftorm_of1x_add_entry_hook(of1x_flow_entry_t* new_entry) {
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
 	if (!is_l2_entry(new_entry)) {
-		ROFL_ERR("["DRIVER_NAME"] not l2 entry");
+		ROFL_ERR("["DRIVER_NAME"] not l2 entry\n");
 		return;
 	}
 
@@ -105,7 +105,7 @@ void platform_of1x_remove_entry_hook(of1x_flow_entry_t* entry) {
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
 	if (!is_l2_entry(entry)) {
-		ROFL_ERR("["DRIVER_NAME"] not l2 entry");
+		ROFL_ERR("["DRIVER_NAME"] not l2 entry\n");
 		return;
 	}
 

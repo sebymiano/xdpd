@@ -56,7 +56,6 @@ bool is_l2_entry(of1x_flow_entry_t * entry) {
 }
 
 bool actions_are_only_l2(of1x_action_group_t* action_group) {
-	int i;
 	bitmap128_t no_l2_bitmap;
 	bitmap128_t and_actions_bitmap;
 

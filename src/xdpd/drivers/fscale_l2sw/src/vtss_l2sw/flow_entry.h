@@ -11,6 +11,8 @@
 #include <vtss_api/vtss_api.h>
 #include <vtss_api/vtss_security_api.h>
 
+extern int aclId;
+
 //C++ extern C
 ROFL_BEGIN_DECLS
 
