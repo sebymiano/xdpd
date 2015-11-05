@@ -5,6 +5,8 @@
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/pipeline/switch_port.h>
 #include <vtss_api/vtss_api.h>
+#include <vtss_api/vtss_phy_api.h>
+#include <vtss_api/vtss_l2_api.h>
 extern "C" {
 
 #include <fsl_utils/fsl_utils.h>

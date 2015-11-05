@@ -98,21 +98,29 @@ rofl_result_t vtss_l2sw_destroy() {
 rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 	vtss_ace_t acl_entry;
 
+	ROFL_INFO("vtss_l2sw.c: calling  generate_acl_entry_matches...");
+
 	if (vtss_l2sw_generate_acl_entry_matches(&acl_entry, entry) != VTSS_RC_OK) {
 		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_add_flow_entry failed");
 		return ROFL_FAILURE;
 	}
+
+	ROFL_INFO("vtss_l2sw.c: calling  generate_acl_entry_actions...");
 
 	if (vtss_l2sw_generate_acl_entry_actions(&acl_entry, entry) != VTSS_RC_OK) {
 		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_generate_acl_entry_actions failed");
 		return ROFL_FAILURE;
 	}
 
+	ROFL_INFO("vtss_l2sw.c: adding acl...");
+
 	/* Add ACL entry */
 	if (vtss_ace_add(NULL, VTSS_ACE_ID_LAST, &acl_entry) != VTSS_RC_OK) {
 		ROFL_ERR("vtss_l2sw.c: vtss_ace_add failed, unable to add the acl");
 		return ROFL_FAILURE;
 	}
+
+	ROFL_INFO("vtss_l2sw.c: acl added...");
 
 	return ROFL_SUCCESS;
 }

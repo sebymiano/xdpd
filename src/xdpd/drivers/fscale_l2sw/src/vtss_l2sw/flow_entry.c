@@ -53,12 +53,54 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 		type = match->type;
 	}
 
-	return VTSS_RC_ERROR;
+	return VTSS_RC_OK;
 }
 
-vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_entry_t* of1x_entry){
-	//TODO: Add implementation
-	return VTSS_RC_ERROR;
+vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_entry_t* of1x_entry) {
+
+	of1x_packet_action_t* action;
+	uint16_t port;
+	int i;
+
+	//If entry has not actions we are done (should we really install it down there?)
+	if (!of1x_entry->inst_grp.instructions[OF1X_IT_APPLY_ACTIONS].apply_actions) {
+		return VTSS_RC_OK;
+	}
+
+	action = of1x_entry->inst_grp.instructions[OF1X_IT_APPLY_ACTIONS].apply_actions->head;
+
+	if (!action) {
+		assert(0);
+		return VTSS_RC_ERROR;
+	}
+
+	for (i = VTSS_PORT_NO_START; i < VTSS_PORT_NO_END && is_valid_port(i); i++) {
+		acl_entry->action.port_list[i] = false;
+	}
+
+	//Loop over apply actions only
+	for (; action; action = action->next) {
+		switch (action->type) {
+
+		case OF1X_AT_OUTPUT:
+			ROFL_DEBUG(" vtss_l2sw_generate_acl_entry_actions   ENTRY port %d ", port);
+
+			if (is_valid_port(port) && !is_internal_port(port)) {
+				//TODO: Here I should check for flooding or mirroring ecc...
+				acl_entry->action.learn = false;
+				acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_REDIR;
+				acl_entry->action.port_list[port] = true;
+			} else {
+				ROFL_ERR("flow_entry.c: wrong port in vtss_l2sw_generate_acl_entry_actions");
+				assert(0);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	return VTSS_RC_OK;
 }
 
 static bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, int port_no) {
@@ -69,6 +111,8 @@ static bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t
 				ROFL_ERROR("vtss_l2sw_generate_acl_entry: failed to initialize ACL entry for OF1X_MATCH_IN_PORT", port);
 				return VTSS_RC_ERROR;
 			}
+
+			//TODO: Maybe this initialization should be done directly in the action generate_acl_entry_actions
 			//Forward to CPU
 			acl_entry->action.cpu = false;
 			//Only first frame forwarded to CPU
