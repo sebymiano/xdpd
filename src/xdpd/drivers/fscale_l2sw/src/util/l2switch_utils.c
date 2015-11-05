@@ -11,6 +11,7 @@
 #include <rofl/datapath/pipeline/common/datapacket.h>
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/hal/cmm.h>
+#include "../config.h"
 
 bool is_l2_entry(of1x_flow_entry_t * entry) {
 	bitmap128_t no_l2_bitmap;
@@ -20,36 +21,40 @@ bool is_l2_entry(of1x_flow_entry_t * entry) {
 	bitmap128_set_all(&no_l2_bitmap);
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_IN_PORT);
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_IN_PHY_PORT);
-	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_DST);
-	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_SRC);
+	//bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_DST);
+	//bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_SRC);
 	//bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_VLAN_VID);
 
+	ROFL_INFO("["DRIVER_NAME"] %s(): set bitmap for no l2 matches\n", __FUNCTION__);
+
 	and_matches_bitmap = bitmap128_and(&entry->matches.match_bm, &no_l2_bitmap);
-	and_wildcard_bitmap = bitmap128_and(&entry->matches.wildcard_bm,
-			&no_l2_bitmap);
-	if (bitmap128_is_empty(&and_matches_bitmap)
-			&& bitmap128_is_empty(&and_wildcard_bitmap)) {
+	and_wildcard_bitmap = bitmap128_and(&entry->matches.wildcard_bm, &no_l2_bitmap);
+	if (!bitmap128_is_empty(&and_matches_bitmap) || !bitmap128_is_empty(&and_wildcard_bitmap)) {
 		//TODO: Here I'm sure that there are no entries different from l2, but I'm not sure that there are still l2 entries
 
-		/*if(bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PORT)
-		 || bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PHY_PORT)
-		 || bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_DST)
-		 || bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_SRC)
-		 || bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_VLAN_VID)){
-		 return true;
-		 }*/
-
-		if (actions_are_only_l2(entry->inst_grp.instructions,
-				entry->inst_grp.num_of_instructions)) {
-			return true;
-
-		}
+		ROFL_INFO("["DRIVER_NAME"] %s(): there are matches different from l2\n", __FUNCTION__);
+		return false;
 	}
 
-	return false;
+	if (!bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PORT)
+			&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PHY_PORT)) {
+		//&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_DST)
+		//&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_SRC)){
+		ROFL_INFO("["DRIVER_NAME"] %s(): there aren't matches different from l2 but there are no l2 matches also\n", __FUNCTION__);
+		return false;
+	}
+
+	if (!actions_are_only_l2(entry->inst_grp.instructions, entry->inst_grp.num_of_instructions)) {
+		ROFL_INFO("["DRIVER_NAME"] %s(): there are some actions not compatible with this driver\n", __FUNCTION__);
+		return false;
+	}
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): fine :) all actions and entries are l2\n", __FUNCTION__);
+
+	return true;
 }
 
-bool actions_are_only_l2(of1x_instruction_t* instruction_list, int num_instructions){
+bool actions_are_only_l2(of1x_instruction_t* instruction_list, int num_instructions) {
 	int i;
 	bitmap128_t no_l2_bitmap;
 	bitmap128_t and_actions_bitmap;
@@ -59,19 +64,23 @@ bool actions_are_only_l2(of1x_instruction_t* instruction_list, int num_instructi
 	bitmap128_unset(&no_l2_bitmap, OF1X_AT_OUTPUT);
 	bitmap128_unset(&no_l2_bitmap, OF1X_AT_NO_ACTION);
 
-	for(i = 0; i < num_instructions; i++){
+	ROFL_INFO("["DRIVER_NAME"] %s(): set bitmap for no l2 matches\n", __FUNCTION__);
+
+	for (i = 0; i < num_instructions; i++) {
 		instr = instruction_list[i];
 
 		and_actions_bitmap = bitmap128_and(&instr.apply_actions->bitmap, &no_l2_bitmap);
-		if(!bitmap128_is_empty(&and_actions_bitmap)){
+		if (!bitmap128_is_empty(&and_actions_bitmap)) {
 			//If this result is empty means that there are no actions not supported
+			ROFL_INFO("["DRIVER_NAME"] %s(): there are actions different from l2\n", __FUNCTION__);
 			return false;
 		}
 
 		//Here I'm not sure if the instruction contains our supported action
-		if(!bitmap128_is_bit_set(&instr.apply_actions->bitmap, OF1X_AT_OUTPUT)
-				&& !bitmap128_is_bit_set(&instr.apply_actions->bitmap, OF1X_AT_NO_ACTION)){
+		if (!bitmap128_is_bit_set(&instr.apply_actions->bitmap, OF1X_AT_OUTPUT)
+				&& !bitmap128_is_bit_set(&instr.apply_actions->bitmap, OF1X_AT_NO_ACTION)) {
 			//This instruction is empty because is doesn't contain action output
+			ROFL_INFO("["DRIVER_NAME"] %s(): there aren't actions different from l2 but there are no l2 actions also\n", __FUNCTION__);
 			return false;
 		}
 
