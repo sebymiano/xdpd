@@ -13,8 +13,20 @@
 
 extern int aclId;
 
+#define ACL_INVALID_ID -1
+
+//Entry
+typedef struct vtss_l2sw_flow_entry{
+	//ACL ID
+	unsigned int acl_id;
+}vtss_l2sw_flow_entry_t;
+
 //C++ extern C
 ROFL_BEGIN_DECLS
+
+vtss_l2sw_flow_entry_t* vtss_l2sw_init_vtss_flow_entry(void);
+
+void vtss_l2sw_destroy_vtss_flow_entry(vtss_l2sw_flow_entry_t* entry);
 
 vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_entry_t* of1x_entry);
 

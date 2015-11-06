@@ -11,6 +11,7 @@
 #include <fsl_utils/fsl_utils.h>
 #include <port_setup/port_setup.h>
 #include <rofl/datapath/pipeline/physical_switch.h>
+#include "../config.h"
 
 #include <sys/types.h>
 #include <sys/times.h>
@@ -97,38 +98,67 @@ rofl_result_t vtss_l2sw_destroy() {
 
 rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 	vtss_ace_t acl_entry;
+	vtss_l2sw_flow_entry_t* vtss_entry;
 
-	ROFL_INFO("vtss_l2sw.c: calling  generate_acl_entry_matches...\n");
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: calling  generate_acl_entry_matches...\n");
 
 	if (vtss_l2sw_generate_acl_entry_matches(&acl_entry, entry) != VTSS_RC_OK) {
 		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_add_flow_entry failed");
 		return ROFL_FAILURE;
 	}
 
-	ROFL_INFO("vtss_l2sw.c: calling  generate_acl_entry_actions...\n");
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: calling  generate_acl_entry_actions...\n");
 
 	if (vtss_l2sw_generate_acl_entry_actions(&acl_entry, entry) != VTSS_RC_OK) {
 		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_generate_acl_entry_actions failed\n");
 		return ROFL_FAILURE;
 	}
 
-	ROFL_INFO("vtss_l2sw.c: adding acl...\n");
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: adding acl...\n");
 
 	acl_entry.id = aclId;
 
+	vtss_entry = vtss_l2sw_init_vtss_flow_entry();
+	if (!vtss_entry)
+		return ROFL_FAILURE;
+
+	vtss_entry->acl_id = aclId;
+	//Do the association with the vtss_l2sw state
+	entry->platform_state = (of1x_flow_entry_platform_state_t*) vtss_entry;
+
 	/* Add ACL entry */
 	if (vtss_ace_add(NULL, VTSS_ACE_ID_LAST, &acl_entry) != VTSS_RC_OK) {
-		ROFL_ERR("vtss_l2sw.c: vtss_ace_add failed, unable to add the acl\n");
+		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_ace_add failed, unable to add the acl\n");
+		vtss_l2sw_destroy_vtss_flow_entry(vtss_entry);
 		return ROFL_FAILURE;
 	}
+
 	aclId++;
 
-	ROFL_INFO("vtss_l2sw.c: acl added...\n");
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: acl added...\n");
 
 	return ROFL_SUCCESS;
 }
 
 rofl_result_t vtss_l2sw_delete_flow_entry(of1x_flow_entry_t* entry) {
-	//TODO: Implement this function
-	return ROFL_FAILURE;
+	//Recover the position
+	vtss_l2sw_flow_entry_t* hw_entry = (vtss_l2sw_flow_entry_t*) entry->platform_state;
+
+	//Check
+	if (!hw_entry || hw_entry->acl_id == ACL_INVALID_ID)
+		return ROFL_FAILURE;
+
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: removing acl...\n");
+
+	if(vtss_ace_del(NULL, hw_entry->acl_id) != VTSS_RC_OK){
+		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_ace_del failed, unable to remove the acl\n");
+		return ROFL_FAILURE;
+	}
+
+	vtss_l2sw_destroy_vtss_flow_entry(hw_entry);
+
+	//FIXME: Here I should also release the id of this entry
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: acl removed...\n");
+
+	return ROFL_SUCCESS;
 }

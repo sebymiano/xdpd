@@ -65,10 +65,13 @@ hal_result_t hal_driver_init(hal_extension_ops_t* extensions,
 	//Initialize some form of background task manager
 	launch_background_tasks_manager();
 
+	ROFL_INFO("["DRIVER_NAME"] background task manager launched\n");
+	ROFL_INFO("["DRIVER_NAME"] launching background frame extractor from hal_driver_init\n");
+
 	//Initialize a frame extractor for CPU frames
 	launch_background_frame_extractor();
 
-	ROFL_INFO("["DRIVER_NAME"] background task manager launched\n");
+	ROFL_INFO("["DRIVER_NAME"] background frame extractor launched\n");
 
 	//We don't support any HAL extension
 	memset(extensions, 0, sizeof(hal_extension_ops_t));
@@ -100,9 +103,10 @@ hal_result_t hal_driver_destroy() {
 
 	//In this function you allow the platform
 	//to be properly cleaning its own state
-	stop_background_tasks_manager();
 
 	stop_background_frame_extractor();
+
+	stop_background_tasks_manager();
 
 	//Stop the logical switch
 	if (sw) {

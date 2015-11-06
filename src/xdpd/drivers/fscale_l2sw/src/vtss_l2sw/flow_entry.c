@@ -141,6 +141,28 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 	return VTSS_RC_OK;
 }
 
+vtss_l2sw_flow_entry_t* init_vtss_flow_entry() {
+	vtss_l2sw_flow_entry_t* entry;
+
+	entry = malloc(sizeof(vtss_l2sw_flow_entry_t));
+	if (!entry)
+		return NULL;
+
+	//memset entry
+	memset(entry, 0, sizeof(*entry));
+
+	entry->acl_id = ACL_INVALID_ID;
+
+	return entry;
+}
+
+void vtss_l2sw_destroy_vtss_flow_entry(vtss_l2sw_flow_entry_t* entry) {
+	if (!entry)
+		return;
+
+	free(entry);
+}
+
 bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, int port_no) {
 	if (is_valid_port(port_no) && !is_internal_port(port_no)) {
 		if (type == OF1X_MATCH_MAX) {

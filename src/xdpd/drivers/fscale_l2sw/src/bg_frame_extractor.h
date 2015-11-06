@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl_datapath.h>
+#include <vtss_api/vtss_api.h>
 
 #define XTR_GRP_CFG_REG		(0x080000 >> 2)
 #define INJ_GRP_CFG_REG		(0x080024 >> 2)

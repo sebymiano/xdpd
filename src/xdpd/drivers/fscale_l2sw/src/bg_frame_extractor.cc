@@ -60,7 +60,7 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 
 	port = physical_switch_get_port_by_name(iface_name);
 
-	vtss_l2sw_port_t* state = (vtss_l2sw_port_t*) header->port_no;
+	vtss_l2sw_port_t* state = (vtss_l2sw_port_t*) port->platform_port_state;
 
 	//Retrieve an empty buffer
 	datapacket_t* pkt = xdpd::gnu_linux::bufferpool::get_buffer();
@@ -81,28 +81,41 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 	storage = ((logical_switch_internals*) lsw->platform_state)->storage;
 
 	xdpd::gnu_linux::storeid storage_id = storage->store_packet(pkt);
+	ROFL_DEBUG(" PACKET_IN storage ID %d for datapacket pkt %d dpid %d  \n", storage_id, pkt,sw->dpid);
 
 	//Fill matches
 	fill_packet_matches(pkt, &matches);
 
 	//Process packet in
-	hal_result r = hal_cmm_process_of1x_packet_in(
-			sw->dpid,
-			pack->pktin_table_id,
-			pack->pktin_reason,
-			pack->clas_state.port_in,
-			storage_id,
-			pkt->__cookie,
-			pack->get_buffer(),
-			pack->pktin_send_len,
-			pack->get_buffer_length(),
-			&matches);
+	hal_result r = hal_cmm_process_of1x_packet_in(sw->dpid, pack->pktin_table_id, pack->pktin_reason,
+			pack->clas_state.port_in, storage_id, pkt->__cookie, pack->get_buffer(), pack->pktin_send_len,
+			pack->get_buffer_length(), &matches);
 
 	if (HAL_FAILURE == r)
 		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful\n");
 	if (HAL_SUCCESS == r)
 		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in successful \n");
 
+}
+
+/* Dump frame */
+static void dump_frame(vtss_packet_rx_header_t *header, vtss_packet_rx_queue_t queue, u8 *frame) {
+	char buf[100], *p;
+	u32 i;
+
+	ROFL_INFO("["DRIVER_NAME"] Received frame on port: %u, queue: %u, length: %u\n", header->port_no, queue,
+			header->length);
+	for (i = 0, p = &buf[0]; i < header->length; i++) {
+		if ((i % 16) == 0) {
+			p = &buf[0];
+			p += sprintf(p, "%04x: ", i);
+		}
+
+		p += sprintf(p, "%02x%c", frame[i], ((i + 9) % 16) == 0 ? '-' : ' ');
+		if (((i + 1) % 16) == 0 || (i + 1) == header->length)
+			ROFL_INFO("%s\n", buf);
+	}
+	ROFL_INFO("\n");
 }
 
 /*
@@ -127,7 +140,7 @@ void read_frame_from_cpu_queues(u32 count) {
 			nothing_received = false;
 			ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: Received frame on port: %u, queue: %u, length: %u\n",
 					header.port_no, queue, header.length);
-
+			dump_frame(&header, queue, frame);
 			generate_new_packet_in(&header, queue, frame);
 		}
 
@@ -152,12 +165,12 @@ void* bg_frame_extractor_routine(void* param) {
 	while (bg_continue_execution) {
 		sleep(1);
 
-		ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: updating statistics...\n");
+		ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: reading from CPU queues...\n");
 		read_frame_from_cpu_queues(MAX_FRAMES_RECV);
 	}
 
 	//Printing some information
-	ROFL_INFO("["DRIVER_NAME"] Finishing thread execution\n");
+	ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: Finishing thread execution\n");
 
 	/* restore CPU injection/extraction configuration */
 	l2sw_reg_write(0, XTR_GRP_CFG_REG, xtr_grp_cfg_old);
