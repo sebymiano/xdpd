@@ -1,0 +1,195 @@
+#include "bg_frame_extractor.h"
+
+#include <sys/socket.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <linux/rtnetlink.h>
+#include <linux/ethtool.h>
+#include <linux/sockios.h>
+#include <stdio.h>
+#include <sys/ioctl.h>
+#include <sys/epoll.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <inttypes.h>
+
+#include <rofl/common/utils/c_logger.h>
+#include <rofl/datapath/hal/driver.h>
+#include <rofl/datapath/hal/cmm.h>
+#include <rofl/datapath/pipeline/switch_port.h>
+#include <rofl/datapath/pipeline/openflow/of_switch.h>
+
+#include <rofl/datapath/hal/openflow/openflow1x/of1x_driver.h>
+#include <rofl/datapath/hal/openflow/openflow1x/of1x_cmm.h>
+#include <rofl/datapath/pipeline/physical_switch.h>
+#include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_pipeline.h>
+#include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_flow_entry.h>
+#include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_statistics.h>
+
+#include "io/iface_utils.h"
+#include "io/datapacket_storage.h"
+#include "io/bufferpool.h"
+#include "io/datapacketx86.h"
+#include "pipeline-imp/ls_internal_state.h"
+#include "config.h"
+#include "vtss_l2sw/ports.h"
+#include "vtss_l2sw/vtss_l2sw.h"
+
+#include <vtss_api/vtss_api.h>
+#include <vtss_api/vtss_packet_api.h>
+extern "C" {
+
+#include <fsl_utils/fsl_utils.h>
+
+}
+#include "util/time_utils.h"
+#include "io/iface_utils.h"
+
+//Local static variable for background manager thread
+static pthread_t bg_thread;
+static bool bg_continue_execution = true;
+
+void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queue_t queue, u8 *frame) {
+	packet_matches_t matches;
+	char iface_name[FSCALE_L2SW_INTERFACE_NAME_LEN] = "0";
+	switch_port_t* port;
+
+	snprintf(iface_name, FSCALE_L2SW_INTERFACE_NAME_LEN,
+	FSCALE_L2SW_INTERFACE_BASE_NAME"%d", header->port_no);
+
+	port = physical_switch_get_port_by_name(iface_name);
+
+	vtss_l2sw_port_t* state = (vtss_l2sw_port_t*) header->port_no;
+
+	//Retrieve an empty buffer
+	datapacket_t* pkt = xdpd::gnu_linux::bufferpool::get_buffer();
+
+	if (!pkt)
+		return;
+
+	xdpd::gnu_linux::datapacketx86* pack = (xdpd::gnu_linux::datapacketx86*) pkt->platform_state;
+
+	pack->init(frame, header->length, port->attached_sw, port->of_port_num, state->vtss_l2sw_port_num, true, false);
+
+	of1x_switch_t* sw = (of1x_switch_t*) port->attached_sw;
+
+	of_switch_t* lsw;
+	lsw = physical_switch_get_logical_switch_by_dpid(sw->dpid);
+
+	xdpd::gnu_linux::datapacket_storage* storage;
+	storage = ((logical_switch_internals*) lsw->platform_state)->storage;
+
+	xdpd::gnu_linux::storeid storage_id = storage->store_packet(pkt);
+
+	//Fill matches
+	fill_packet_matches(pkt, &matches);
+
+	//Process packet in
+	hal_result r = hal_cmm_process_of1x_packet_in(
+			sw->dpid,
+			pack->pktin_table_id,
+			pack->pktin_reason,
+			pack->clas_state.port_in,
+			storage_id,
+			pkt->__cookie,
+			pack->get_buffer(),
+			pack->pktin_send_len,
+			pack->get_buffer_length(),
+			&matches);
+
+	if (HAL_FAILURE == r)
+		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful\n");
+	if (HAL_SUCCESS == r)
+		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in successful \n");
+
+}
+
+/*
+ * Receive at most <count> frames
+ */
+void read_frame_from_cpu_queues(u32 count) {
+	vtss_packet_rx_queue_t queue;
+	vtss_packet_rx_header_t header;
+	u8 frame[FRAME_MAX_SIZE + FRAME_HEADER_SIZE];
+	u32 frames = 0;
+	bool nothing_received;
+
+	while (count > frames) {
+		nothing_received = true;
+
+		for (queue = VTSS_PACKET_RX_QUEUE_START; queue < VTSS_PACKET_RX_QUEUE_END; queue++) {
+			/* Read the frame using VTSS API */
+			if (vtss_packet_rx_frame_get(NULL, queue, &header, frame, FRAME_MAX_SIZE) != VTSS_RC_OK)
+				continue;
+
+			frames++;
+			nothing_received = false;
+			ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: Received frame on port: %u, queue: %u, length: %u\n",
+					header.port_no, queue, header.length);
+
+			generate_new_packet_in(&header, queue, frame);
+		}
+
+		if (nothing_received)
+			break;
+	}
+}
+
+/**
+ * @name x86_background_tasks_thread
+ * @brief contents the infinite loop checking for ports and timeouts
+ */
+void* bg_frame_extractor_routine(void* param) {
+	u32 xtr_grp_cfg_old, inj_grp_cfg_old;
+
+	l2sw_reg_read(0, XTR_GRP_CFG_REG, &xtr_grp_cfg_old);
+	l2sw_reg_read(0, INJ_GRP_CFG_REG, &inj_grp_cfg_old);
+
+	l2sw_reg_write(0, XTR_GRP_CFG_REG, xtr_grp_cfg_old & ~(CPU_FRAME_BYTE_SWAP | CPU_FRAME_EOF_WORD_POS_AFTER));
+	l2sw_reg_write(0, INJ_GRP_CFG_REG, inj_grp_cfg_old & ~(CPU_FRAME_BYTE_SWAP));
+
+	while (bg_continue_execution) {
+		sleep(1);
+
+		ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: updating statistics...\n");
+		read_frame_from_cpu_queues(MAX_FRAMES_RECV);
+	}
+
+	//Printing some information
+	ROFL_INFO("["DRIVER_NAME"] Finishing thread execution\n");
+
+	/* restore CPU injection/extraction configuration */
+	l2sw_reg_write(0, XTR_GRP_CFG_REG, xtr_grp_cfg_old);
+	l2sw_reg_write(0, INJ_GRP_CFG_REG, inj_grp_cfg_old);
+
+	//Exit
+	pthread_exit(NULL);
+}
+
+/**
+ * launches the main thread
+ */
+rofl_result_t launch_background_frame_extractor() {
+	//Set flag
+	bg_continue_execution = true;
+
+	ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: launching background frame extractor\n");
+
+	if (pthread_create(&bg_thread, NULL, bg_frame_extractor_routine, NULL) < 0) {
+		ROFL_ERR("<%s:%d> pthread_create failed\n", __func__, __LINE__);
+		return ROFL_FAILURE;
+	}
+	return ROFL_SUCCESS;
+}
+
+rofl_result_t stop_background_frame_extractor() {
+
+	ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: stopping background frame extractor\n");
+
+	bg_continue_execution = false;
+	pthread_join(bg_thread, NULL);
+
+	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: background frame extractor stopped\n");
+	return ROFL_SUCCESS;
+}

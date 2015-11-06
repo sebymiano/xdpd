@@ -76,11 +76,9 @@ rofl_result_t initialize_port(int port_no, switch_port_t** port) {
 	FSCALE_L2SW_INTERFACE_BASE_NAME"%d", port_no);
 
 	//Initialize pipeline structure
-	*port = switch_port_init(iface_name, true, PORT_TYPE_PHYSICAL,
-			PORT_STATE_LIVE);
+	*port = switch_port_init(iface_name, true, PORT_TYPE_PHYSICAL, PORT_STATE_LIVE);
 
-	vtss_l2sw_port_t* vtss_port = (vtss_l2sw_port_t*) malloc(
-			sizeof(vtss_l2sw_port_t));
+	vtss_l2sw_port_t* vtss_port = (vtss_l2sw_port_t*) malloc(sizeof(vtss_l2sw_port_t));
 	vtss_port->vtss_l2sw_port_num = port_no;
 
 	//Initialize platform specific info

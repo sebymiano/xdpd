@@ -13,6 +13,7 @@
 #include <rofl/datapath/pipeline/openflow/of_switch.h>
 #include <rofl/datapath/pipeline/common/datapacket.h>
 #include "../bg_taskmanager.h"
+#include "../bg_frame_extractor.h"
 #include "../io/bufferpool.h"
 #include "../vtss_l2sw/vtss_l2sw.h"
 #include "../vtss_l2sw/ports.h"
@@ -64,6 +65,9 @@ hal_result_t hal_driver_init(hal_extension_ops_t* extensions,
 	//Initialize some form of background task manager
 	launch_background_tasks_manager();
 
+	//Initialize a frame extractor for CPU frames
+	launch_background_frame_extractor();
+
 	ROFL_INFO("["DRIVER_NAME"] background task manager launched\n");
 
 	//We don't support any HAL extension
@@ -97,6 +101,8 @@ hal_result_t hal_driver_destroy() {
 	//In this function you allow the platform
 	//to be properly cleaning its own state
 	stop_background_tasks_manager();
+
+	stop_background_frame_extractor();
 
 	//Stop the logical switch
 	if (sw) {

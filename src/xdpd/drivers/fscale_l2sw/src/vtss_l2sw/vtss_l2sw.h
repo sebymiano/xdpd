@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-
 #ifndef _VTSS_L2SW_H_
 #define _VTSS_L2SW_H_
 
@@ -23,6 +22,5 @@ rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry);
 rofl_result_t vtss_l2sw_delete_flow_entry(of1x_flow_entry_t* entry);
 
 ROFL_END_DECLS
-
 
 #endif //_VTSS_L2SW_H_

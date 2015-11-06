@@ -25,5 +25,4 @@ bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, 
 //C++ extern C
 ROFL_END_DECLS
 
-
 #endif //_VTSS_L2SW_FLOW_ENTRY_H_
