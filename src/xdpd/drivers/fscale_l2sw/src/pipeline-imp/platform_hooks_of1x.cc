@@ -155,9 +155,9 @@ void platform_of1x_modify_entry_hook(of1x_flow_entry_t* old_entry, of1x_flow_ent
 
 	//FIXME: There is a way to modify the entry directly
 
-	vtss_l2sw_delete_flow_entry(entry);
+	vtss_l2sw_delete_flow_entry(old_entry);
 
-	vtss_l2sw_add_flow_entry(new_entry);
+	vtss_l2sw_add_flow_entry(mod);
 
 }
 
