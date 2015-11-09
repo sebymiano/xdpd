@@ -268,6 +268,7 @@ hal_result_t hal_driver_of1x_process_packet_out(uint64_t dpid, uint32_t buffer_i
 
 	//Recover pkt buffer if is stored. Otherwise pick a free buffer
 	if (buffer_id && buffer_id != OF1XP_NO_BUFFER) {
+		ROFL_DEBUG("["DRIVER_NAME"] Recover pkt buffer if is stored");
 
 		//Retrieve the packet
 		pkt = ((struct logical_switch_internals*) lsw->platform_state)->storage->get_packet(buffer_id);
@@ -280,6 +281,7 @@ hal_result_t hal_driver_of1x_process_packet_out(uint64_t dpid, uint32_t buffer_i
 		//Mark as pkt out (ignore counters, slow path)
 		TM_STAMP_PKT_OUT(pkt);
 	} else {
+		ROFL_DEBUG("["DRIVER_NAME"] Retrieve a free buffer");
 		//Retrieve a free buffer
 		pkt = bufferpool::get_buffer();
 
