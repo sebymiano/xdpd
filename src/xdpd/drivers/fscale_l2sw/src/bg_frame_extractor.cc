@@ -60,6 +60,11 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 
 	port = physical_switch_get_port_by_name(iface_name);
 
+	if (port->of_generate_packet_in == false) {
+		ROFL_DEBUG("["DRIVER_NAME"] port %d cannot generate pkt_in \n", header->port_no);
+		return;
+	}
+
 	//Retrieve an empty buffer
 	datapacket_t* pkt = xdpd::gnu_linux::bufferpool::get_buffer();
 
@@ -78,8 +83,11 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 	xdpd::gnu_linux::datapacket_storage* storage;
 	storage = ((logical_switch_internals*) lsw->platform_state)->storage;
 
+	//TODO: Check if this assignment is correct
+	pack->pktin_send_len = ((of1x_switch_t*) sw)->pipeline.miss_send_len;
+
 	xdpd::gnu_linux::storeid storage_id = storage->store_packet(pkt);
-	ROFL_DEBUG(" PACKET_IN storage ID %d for datapacket pkt %d dpid %d  \n", storage_id, pkt, sw->dpid);
+	ROFL_DEBUG("["DRIVER_NAME"] PACKET_IN storage ID %d for datapacket pkt %d dpid %d  \n", storage_id, pkt, sw->dpid);
 
 	//Fill matches
 	fill_packet_matches(pkt, &matches);
@@ -89,8 +97,11 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 			pack->clas_state.port_in, storage_id, pkt->__cookie, pack->get_buffer(), pack->pktin_send_len,
 			pack->get_buffer_length(), &matches);
 
-	ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc sw->dpid = %u, pack->pktin_table_id = %u, reason = %u \
-						 port_in = %u, storage_id = %u, pktin_send_len = %u, buffer_length = %u\n", sw->dpid, pack->pktin_table_id, pack->pktin_reason, pack->clas_state.port_in, storage_id, pack->pktin_send_len, pack->get_buffer_length());
+	ROFL_DEBUG(
+			"["DRIVER_NAME"] bg_frame_extractor.cc sw->dpid = %u, pack->pktin_table_id = %u, reason = %u \
+						 port_in = %u, storage_id = %u, pktin_send_len = %u, buffer_length = %u\n",
+			sw->dpid, pack->pktin_table_id, pack->pktin_reason, pack->clas_state.port_in, storage_id,
+			pack->pktin_send_len, pack->get_buffer_length());
 
 	if (HAL_FAILURE == r)
 		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful \n");
