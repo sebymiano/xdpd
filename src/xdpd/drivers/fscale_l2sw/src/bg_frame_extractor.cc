@@ -60,8 +60,6 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 
 	port = physical_switch_get_port_by_name(iface_name);
 
-	vtss_l2sw_port_t* state = (vtss_l2sw_port_t*) port->platform_port_state;
-
 	//Retrieve an empty buffer
 	datapacket_t* pkt = xdpd::gnu_linux::bufferpool::get_buffer();
 
@@ -91,8 +89,11 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 			pack->clas_state.port_in, storage_id, pkt->__cookie, pack->get_buffer(), pack->pktin_send_len,
 			pack->get_buffer_length(), &matches);
 
+	ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc sw->dpid = %u, pack->pktin_table_id = %u, reason = %u \
+						 port_in = %u, storage_id = %u, pktin_send_len = %u, buffer_length = %u\n", sw->dpid, pack->pktin_table_id, pack->pktin_reason, pack->clas_state.port_in, storage_id, pack->pktin_send_len, pack->get_buffer_length());
+
 	if (HAL_FAILURE == r)
-		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful\n");
+		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful \n");
 	if (HAL_SUCCESS == r)
 		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in successful \n");
 
