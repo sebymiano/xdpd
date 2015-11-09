@@ -24,7 +24,7 @@ extern "C" {
 using namespace xdpd::gnu_linux;
 
 /*
- * Checks wheather the action group contains at least an action output
+ * Checks whether the action group contains at least an action output
  */
 static inline bool action_group_of1x_packet_in_contains_output(of1x_action_group_t* action_group) {
 
@@ -298,7 +298,8 @@ hal_result_t hal_driver_of1x_process_packet_out(uint64_t dpid, uint32_t buffer_i
 
 	//Reclassify the packet
 	pktx86 = (datapacketx86*) pkt->platform_state;
-	classify_packet(&pktx86->clas_state, pktx86->get_buffer(), pktx86->get_buffer_length(), pktx86->clas_state.port_in, 0);
+	classify_packet(&pktx86->clas_state, pktx86->get_buffer(), pktx86->get_buffer_length(), pktx86->clas_state.port_in,
+			0);
 
 	ROFL_DEBUG("["DRIVER_NAME"] Getting packet out [%p]\n", pkt);
 
@@ -597,7 +598,16 @@ hal_gm_result_t hal_driver_of1x_group_mod_add(uint64_t dpid, of1x_group_type_t t
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return HAL_GM_FAILURE;
+	of1x_switch_t* lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+	rofl_of1x_gm_result_t res;
+
+	if (!lsw) {
+		assert(0);
+		return HAL_GM_UNKGRP;
+	}
+
+	res = of1x_group_add(lsw->pipeline.groups, type, id, buckets);
+	return hal_gm_map_pipeline_retcode(res);
 }
 
 /**
@@ -612,7 +622,16 @@ hal_gm_result_t hal_driver_of1x_group_mod_modify(uint64_t dpid, of1x_group_type_
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return HAL_GM_FAILURE;
+	of1x_switch_t* lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+	rofl_of1x_gm_result_t res;
+
+	if (!lsw) {
+		assert(0);
+		return HAL_GM_UNKGRP;
+	}
+
+	res = of1x_group_modify(lsw->pipeline.groups, type, id, buckets);
+	return hal_gm_map_pipeline_retcode(res);
 }
 
 /**
@@ -626,7 +645,17 @@ hal_gm_result_t hal_driver_of1x_group_mod_delete(uint64_t dpid, uint32_t id) {
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return HAL_GM_FAILURE;
+	of1x_switch_t* lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+	rofl_of1x_gm_result_t res;
+
+	if (!lsw) {
+		assert(0);
+		return HAL_GM_UNKGRP;
+	}
+
+	res = of1x_group_delete(&lsw->pipeline, lsw->pipeline.groups, id);
+	return hal_gm_map_pipeline_retcode(res);
+
 }
 
 /**
@@ -638,7 +667,14 @@ of1x_stats_group_desc_msg_t *hal_driver_of1x_get_group_desc_stats(uint64_t dpid)
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return NULL;
+	of1x_switch_t* lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+
+	if (!lsw) {
+		assert(0);
+		return NULL;
+	}
+
+	return of1x_get_group_desc_stats(&lsw->pipeline);
 }
 
 /**
@@ -652,5 +688,12 @@ of1x_stats_group_msg_t * hal_driver_of1x_get_group_stats(uint64_t dpid, uint32_t
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	return NULL;
+	of1x_switch_t* lsw = (of1x_switch_t*) physical_switch_get_logical_switch_by_dpid(dpid);
+
+	if (!lsw) {
+		assert(0);
+		return NULL;
+	}
+
+	return of1x_get_group_stats(&lsw->pipeline, id);
 }
