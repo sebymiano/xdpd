@@ -99,8 +99,12 @@ datapacket_t* platform_packet_replicate(datapacket_t* pkt) {
 }
 
 static void output_single_packet(uint8_t* pack, int output_phy_port, size_t size) {
+	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
 	if(is_valid_port(output_phy_port) && !is_internal_port(output_phy_port)){
+
+		ROFL_DEBUG("["DRIVER_NAME"] preparing to output packet into port %u, port is valid \n", output_phy_port);
+
 		if(vtss_packet_tx_frame_port(NULL, output_phy_port, pack, size) != VTSS_RC_OK){
 			ROFL_DEBUG("["DRIVER_NAME"] writing to a physical port unsuccessful \n");
 		} else {
@@ -158,6 +162,7 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 
 			state = (vtss_l2sw_port_t*) port_it->platform_port_state;
 			output_phy_port = state->vtss_l2sw_port_num;
+			ROFL_DEBUG("["DRIVER_NAME"] preparing to output packet into port %u \n", output_phy_port);
 			output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
 		}
 
@@ -183,11 +188,13 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 
 		state = (vtss_l2sw_port_t*) port->platform_port_state;
 		output_phy_port = state->vtss_l2sw_port_num;
+		ROFL_DEBUG("["DRIVER_NAME"] preparing to output packet into port %u \n", output_phy_port);
 		output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
 	} else {
 		//Single output
 		state = (vtss_l2sw_port_t*) output_port->platform_port_state;
 		output_phy_port = state->vtss_l2sw_port_num;
+		ROFL_DEBUG("["DRIVER_NAME"] preparing to output packet into port %u \n", output_phy_port);
 		output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
 	}
 
