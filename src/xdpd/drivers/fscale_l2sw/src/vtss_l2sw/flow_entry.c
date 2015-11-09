@@ -141,7 +141,7 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 	return VTSS_RC_OK;
 }
 
-vtss_l2sw_flow_entry_t* init_vtss_flow_entry() {
+vtss_l2sw_flow_entry_t* vtss_l2sw_init_vtss_flow_entry() {
 	vtss_l2sw_flow_entry_t* entry;
 
 	entry = malloc(sizeof(vtss_l2sw_flow_entry_t));
