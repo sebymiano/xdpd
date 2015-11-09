@@ -3,6 +3,7 @@
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/pipeline/openflow/of_switch_pp.h>
 #include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_pipeline.h>
+#include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_pipeline_pp.h>
 #include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_flow_entry.h>
 #include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_statistics.h>
 #include "../../../config.h"
@@ -21,6 +22,21 @@ extern "C" {
 #include "../../../pipeline-imp/ls_internal_state.h"
 
 using namespace xdpd::gnu_linux;
+
+/*
+ * Checks wheather the action group contains at least an action output
+ */
+static inline bool action_group_of1x_packet_in_contains_output(of1x_action_group_t* action_group) {
+
+	of1x_packet_action_t* action;
+
+	for (action = action_group->head; action; action = action->next) {
+		if (action->type == OF1X_AT_OUTPUT)
+			return true;
+	}
+
+	return false;
+}
 
 //Port config
 
@@ -221,6 +237,73 @@ hal_result_t hal_driver_of1x_process_packet_out(uint64_t dpid, uint32_t buffer_i
 		of1x_action_group_t* action_group, uint8_t* buffer, uint32_t buffer_size) {
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
+
+	of_switch_t* lsw;
+	datapacket_t* pkt;
+	datapacketx86* pktx86;
+
+	//Recover port
+	lsw = physical_switch_get_logical_switch_by_dpid(dpid);
+
+	//Check switch and port
+	if (!lsw || ((lsw->of_ver != OF_VERSION_10) && (lsw->of_ver != OF_VERSION_12) && (lsw->of_ver != OF_VERSION_13))) {
+		//TODO: log this... should never happen
+		assert(0);
+		return HAL_FAILURE;
+	}
+
+	//Avoid DoS. Check whether the action list contains an action output, otherwise drop, since the packet will never be freed
+	if (!action_group_of1x_packet_in_contains_output(action_group)) {
+
+		if (OF1XP_NO_BUFFER != buffer_id) {
+			pkt = ((struct logical_switch_internals*) lsw->platform_state)->storage->get_packet(buffer_id);
+			if (NULL != pkt) {
+				bufferpool::release_buffer(pkt);
+			}
+		}
+
+		//FIXME: free action_group??
+		return HAL_FAILURE; /*TODO add specific error */
+	}
+
+	//Recover pkt buffer if is stored. Otherwise pick a free buffer
+	if (buffer_id && buffer_id != OF1XP_NO_BUFFER) {
+
+		//Retrieve the packet
+		pkt = ((struct logical_switch_internals*) lsw->platform_state)->storage->get_packet(buffer_id);
+
+		//Buffer has expired
+		if (!pkt) {
+			return HAL_FAILURE; /* TODO: add specific error */
+		}
+
+		//Mark as pkt out (ignore counters, slow path)
+		TM_STAMP_PKT_OUT(pkt);
+	} else {
+		//Retrieve a free buffer
+		pkt = bufferpool::get_buffer();
+
+		if (!pkt) {
+			//No available buffers
+			return HAL_FAILURE; /* TODO: add specific error */
+		}
+
+		//Mark as pkt out (ignore counters, slow path)
+		TM_STAMP_PKT_OUT(pkt);
+
+		//Initialize the packet and copy
+		((datapacketx86*) pkt->platform_state)->init(buffer, buffer_size, lsw, in_port, 0, true);
+		pkt->sw = lsw;
+	}
+
+	//Reclassify the packet
+	pktx86 = (datapacketx86*) pkt->platform_state;
+	classify_packet(&pktx86->clas_state, pktx86->get_buffer(), pktx86->get_buffer_length(), pktx86->clas_state.port_in, 0);
+
+	ROFL_DEBUG_VERBOSE("Getting packet out [%p]\n", pkt);
+
+	//Instruct pipeline to process actions. This may re-inject the packet
+	of1x_process_packet_out_pipeline(ROFL_PIPELINE_LOCKED_TID, (of1x_switch_t*) lsw, pkt, action_group);
 
 	return HAL_SUCCESS;
 }
