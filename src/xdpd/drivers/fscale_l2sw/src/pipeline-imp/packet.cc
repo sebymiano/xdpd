@@ -25,6 +25,7 @@ extern "C" {
 #include "../io/bufferpool.h"
 #include "../io/packet_classifiers/pktclassifier.h"
 #include "../config.h"
+#include "../vtss_l2sw/ports.h"
 
 //
 // Configuration to include packet_proto_meta_imp.h
