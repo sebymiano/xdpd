@@ -70,7 +70,7 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 
 	xdpd::gnu_linux::datapacketx86* pack = (xdpd::gnu_linux::datapacketx86*) pkt->platform_state;
 
-	pack->init(frame, header->length, port->attached_sw, port->of_port_num, state->vtss_l2sw_port_num, true, false);
+	pack->init(frame, header->length, port->attached_sw, port->of_port_num, 0, true, false);
 
 	of1x_switch_t* sw = (of1x_switch_t*) port->attached_sw;
 
@@ -92,7 +92,7 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 			pack->get_buffer_length(), &matches);
 
 	if (HAL_FAILURE == r)
-		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful\n");
+		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful \n");
 	if (HAL_SUCCESS == r)
 		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in successful \n");
 
