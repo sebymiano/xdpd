@@ -160,9 +160,7 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 
 			//Check port is not incoming port, exists, and is up
 			if ((i == pack->clas_state.port_in) || !port_it || port_it->no_flood) {
-				ROFL_DEBUG(
-						"["DRIVER_NAME"] packet.cc: (i == pack->clas_state.port_in) == %u, !port_it = %u, port_it->no_flood = %u\n",
-						i == pack->clas_state.port_in, !port_it, port_it->no_flood);
+				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: skipping port\n");
 				continue;
 			}
 
