@@ -156,7 +156,7 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 
 		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: getting ports from lsi: %lu, name: %s, ports: %lu\n", sw->dpid, sw->name,
 				sw->num_of_ports);
-		for (unsigned i = 0; i < sw->num_of_ports; i++) {
+		for (unsigned i = 1; i <= sw->num_of_ports; i++) {
 			port_it = sw->logical_ports[i].port;
 
 			if (!port_it) {
