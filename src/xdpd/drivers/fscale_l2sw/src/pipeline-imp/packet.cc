@@ -141,7 +141,7 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 	//flood_meta_port is a static variable defined in the physical_switch
 	//the meta_port
 	if (output_port == flood_meta_port || output_port == all_meta_port) {
-		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: we need to FLOOD");
+		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: we need to FLOOD\n");
 		switch_port_t* port_it;
 
 		//Get switch
@@ -149,13 +149,12 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 
 		if (unlikely(!sw)) {
 			bufferpool::release_buffer(pkt);
+			ROFL_DEBUG("["DRIVER_NAME"] packet.cc: sw is NULL");
 			return;
 		}
 
 		//We need to flood
 		for (unsigned i = 0; i < LOGICAL_SWITCH_MAX_LOG_PORTS; ++i) {
-
-
 			port_it = sw->logical_ports[i].port;
 
 			//Check port is not incoming port, exists, and is up
@@ -171,7 +170,7 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 		//discard the original packet always (has been replicated)
 		bufferpool::release_buffer(pkt);
 	} else if (output_port == in_port_meta_port) {
-		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: we need to output in the INPUT port");
+		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: we need to output in the INPUT port\n");
 
 		//In port
 		switch_port_t* port;
@@ -194,7 +193,7 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 		ROFL_DEBUG("["DRIVER_NAME"] preparing to output packet into port %u \n", output_phy_port);
 		output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
 	} else {
-		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: SINGLE output");
+		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: SINGLE output\n");
 		//Single output
 		state = (vtss_l2sw_port_t*) output_port->platform_port_state;
 		output_phy_port = state->vtss_l2sw_port_num;

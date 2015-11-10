@@ -202,8 +202,8 @@ void* x86_background_tasks_routine(void* param) {
 		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: updating statistics...\n");
 		update_misc_stats();
 
-		//ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: processing timeouts...\n");
-		//process_timeouts();
+		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: processing timeouts...\n");
+		process_timeouts();
 
 		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: checking port status...\n");
 		check_port_status();
