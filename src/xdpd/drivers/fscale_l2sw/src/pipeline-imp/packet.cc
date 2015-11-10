@@ -145,7 +145,8 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 		switch_port_t* port_it;
 
 		//Get switch
-		sw = pkt->sw;
+		//sw = pkt->sw;
+		sw = pack->lsw;
 
 		if (unlikely(!sw)) {
 			bufferpool::release_buffer(pkt);
@@ -174,7 +175,8 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 
 		//In port
 		switch_port_t* port;
-		sw = pkt->sw;
+		//sw = pkt->sw;
+		sw = pack->lsw;
 
 		if (unlikely(pack->clas_state.port_in >= LOGICAL_SWITCH_MAX_LOG_PORTS)) {
 			assert(0);

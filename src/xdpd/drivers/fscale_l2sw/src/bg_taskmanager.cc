@@ -124,10 +124,10 @@ int process_timeouts() {
 	of_switch_t** logical_switches;
 	static struct timeval last_time_entries_checked = { 0, 0 }, last_time_pool_checked = { 0, 0 };
 
-	ROFL_INFO("["DRIVER_NAME"] getting current date time");
+	ROFL_INFO("["DRIVER_NAME"] getting current date time\n");
 	gettimeofday(&now, NULL);
 
-	ROFL_INFO("["DRIVER_NAME"] getting logical switches");
+	ROFL_INFO("["DRIVER_NAME"] getting logical switches\n");
 	//Retrieve the logical switches list
 	logical_switches = physical_switch_get_logical_switches(&max_switches);
 
