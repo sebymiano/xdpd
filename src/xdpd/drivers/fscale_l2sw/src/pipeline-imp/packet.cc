@@ -154,13 +154,15 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 			return;
 		}
 
-		//We need to flood
-		for (unsigned i = 0; i < LOGICAL_SWITCH_MAX_LOG_PORTS; ++i) {
+		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: getting ports from lsi: %lu, name: %s, ports: %lu\n", sw->dpid, sw->name,
+				sw->num_of_ports);
+		for (unsigned i = 0; i < sw->num_of_ports; i++) {
 			port_it = sw->logical_ports[i].port;
 
 			//Check port is not incoming port, exists, and is up
 			if ((i == pack->clas_state.port_in) || !port_it || port_it->no_flood) {
-				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: skipping port\n");
+				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: skipping port, iteration: %u, no_flood = %u, port_in = %u\n", i,
+						port_it->no_flood, pack->clas_state.port_in);
 				continue;
 			}
 
@@ -168,7 +170,24 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 			output_phy_port = state->vtss_l2sw_port_num;
 			ROFL_DEBUG("["DRIVER_NAME"] packet.cc: preparing to output packet into port %u \n", output_phy_port);
 			output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
+
 		}
+
+		//We need to flood
+		/*for (unsigned i = 0; i < LOGICAL_SWITCH_MAX_LOG_PORTS; ++i) {
+		 port_it = sw->logical_ports[i].port;
+
+		 //Check port is not incoming port, exists, and is up
+		 if ((i == pack->clas_state.port_in) || !port_it || port_it->no_flood) {
+		 ROFL_DEBUG("["DRIVER_NAME"] packet.cc: skipping port\n");
+		 continue;
+		 }
+
+		 state = (vtss_l2sw_port_t*) port_it->platform_port_state;
+		 output_phy_port = state->vtss_l2sw_port_num;
+		 ROFL_DEBUG("["DRIVER_NAME"] packet.cc: preparing to output packet into port %u \n", output_phy_port);
+		 output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
+		 }*/
 
 		//discard the original packet always (has been replicated)
 		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: discard the original packet");
