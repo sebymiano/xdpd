@@ -140,7 +140,7 @@ void read_frame_from_cpu_queues(u32 count) {
 	u32 frames = 0;
 	bool nothing_received;
 
-	while (count > frames) {
+	while (count > frames && bg_continue_execution) {
 		nothing_received = true;
 
 		for (queue = VTSS_PACKET_RX_QUEUE_START; queue < VTSS_PACKET_RX_QUEUE_END; queue++) {

@@ -101,11 +101,11 @@ datapacket_t* platform_packet_replicate(datapacket_t* pkt) {
 static void output_single_packet(uint8_t* pack, int output_phy_port, size_t size) {
 	ROFL_INFO("["DRIVER_NAME"] calling %s()\n", __FUNCTION__);
 
-	if(is_valid_port(output_phy_port) && !is_internal_port(output_phy_port)){
+	if (is_valid_port(output_phy_port) && !is_internal_port(output_phy_port)) {
 
 		ROFL_DEBUG("["DRIVER_NAME"] preparing to output packet into port %u, port is valid \n", output_phy_port);
 
-		if(vtss_packet_tx_frame_port(NULL, output_phy_port, pack, size) != VTSS_RC_OK){
+		if (vtss_packet_tx_frame_port(NULL, output_phy_port, pack, size) != VTSS_RC_OK) {
 			ROFL_DEBUG("["DRIVER_NAME"] writing to a physical port unsuccessful \n");
 		} else {
 			ROFL_DEBUG("["DRIVER_NAME"] writing to a physical port successful \n");
@@ -159,16 +159,21 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 			port_it = sw->logical_ports[i].port;
 
 			//Check port is not incoming port, exists, and is up
-			if ((i == pack->clas_state.port_in) || !port_it || port_it->no_flood)
+			if ((i == pack->clas_state.port_in) || !port_it || port_it->no_flood) {
+				ROFL_DEBUG(
+						"["DRIVER_NAME"] packet.cc: (i == pack->clas_state.port_in) == %u, !port_it = %u, port_it->no_flood = %u\n",
+						i == pack->clas_state.port_in, !port_it, port_it->no_flood);
 				continue;
+			}
 
 			state = (vtss_l2sw_port_t*) port_it->platform_port_state;
 			output_phy_port = state->vtss_l2sw_port_num;
-			ROFL_DEBUG("["DRIVER_NAME"] preparing to output packet into port %u \n", output_phy_port);
+			ROFL_DEBUG("["DRIVER_NAME"] packet.cc: preparing to output packet into port %u \n", output_phy_port);
 			output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
 		}
 
 		//discard the original packet always (has been replicated)
+		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: discard the original packet");
 		bufferpool::release_buffer(pkt);
 	} else if (output_port == in_port_meta_port) {
 		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: we need to output in the INPUT port\n");
