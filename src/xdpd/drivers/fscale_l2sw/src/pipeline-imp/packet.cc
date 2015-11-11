@@ -156,17 +156,17 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 
 		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: getting ports from lsi: %lu, name: %s, ports: %lu\n", sw->dpid, sw->name,
 				sw->num_of_ports);
-		for (unsigned i = 1; i <= sw->num_of_ports; i++) {
+		/*for (unsigned i = 1; i <= sw->num_of_ports; i++) {
 			port_it = sw->logical_ports[i].port;
 
 			if (!port_it) {
-				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port is NULL");
+				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port is NULL\n");
 			}
 
 			if (sw->logical_ports[i].attachment_state == LOGICAL_PORT_STATE_ATTACHED) {
-				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port state attached");
+				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port %u state attached\n", i);
 			} else {
-				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port state not attached");
+				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port %u state not attached\n", i);
 			}
 
 			//Check port is not incoming port, exists, and is up
@@ -181,23 +181,34 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 			ROFL_DEBUG("["DRIVER_NAME"] packet.cc: preparing to output packet into port %u \n", output_phy_port);
 			output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
 
-		}
+		}*/
 
 		//We need to flood
-		/*for (unsigned i = 0; i < LOGICAL_SWITCH_MAX_LOG_PORTS; ++i) {
-		 port_it = sw->logical_ports[i].port;
+		for (unsigned i = 1; i < LOGICAL_SWITCH_MAX_LOG_PORTS; i++) {
+			port_it = sw->logical_ports[i].port;
 
-		 //Check port is not incoming port, exists, and is up
-		 if ((i == pack->clas_state.port_in) || !port_it || port_it->no_flood) {
-		 ROFL_DEBUG("["DRIVER_NAME"] packet.cc: skipping port\n");
-		 continue;
-		 }
+			if (!port_it) {
+				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port is NULL\n");
+			}
 
-		 state = (vtss_l2sw_port_t*) port_it->platform_port_state;
-		 output_phy_port = state->vtss_l2sw_port_num;
-		 ROFL_DEBUG("["DRIVER_NAME"] packet.cc: preparing to output packet into port %u \n", output_phy_port);
-		 output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
-		 }*/
+			if (sw->logical_ports[i].attachment_state == LOGICAL_PORT_STATE_ATTACHED) {
+				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port %u state attached\n", i);
+			} else {
+				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port %u state not attached\n", i);
+			}
+
+			//Check port is not incoming port, exists, and is up
+			if ((i == pack->clas_state.port_in) || !port_it || port_it->no_flood) {
+				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: skipping port, iteration: %u, port_in = %u\n", i,
+						pack->clas_state.port_in);
+				continue;
+			}
+
+			state = (vtss_l2sw_port_t*) port_it->platform_port_state;
+			output_phy_port = state->vtss_l2sw_port_num;
+			ROFL_DEBUG("["DRIVER_NAME"] packet.cc: preparing to output packet into port %u \n", output_phy_port);
+			output_single_packet(pack->get_buffer(), output_phy_port, pack->get_buffer_length());
+		}
 
 		//discard the original packet always (has been replicated)
 		ROFL_DEBUG("["DRIVER_NAME"] packet.cc: discard the original packet");

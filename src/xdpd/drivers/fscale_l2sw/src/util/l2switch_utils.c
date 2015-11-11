@@ -21,8 +21,8 @@ bool is_l2_entry(of1x_flow_entry_t * entry) {
 	bitmap128_set_all(&no_l2_bitmap);
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_IN_PORT);
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_IN_PHY_PORT);
-	//bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_DST);
-	//bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_SRC);
+	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_DST);
+	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_SRC);
 	//bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_VLAN_VID);
 
 	ROFL_INFO("["DRIVER_NAME"] %s(): set bitmap for no l2 matches\n", __FUNCTION__);
@@ -37,9 +37,9 @@ bool is_l2_entry(of1x_flow_entry_t * entry) {
 	}
 
 	if (!bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PORT)
-			&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PHY_PORT)) {
-		//&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_DST)
-		//&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_SRC)){
+			&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PHY_PORT)
+			&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_DST)
+			&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_SRC)) {
 		ROFL_INFO("["DRIVER_NAME"] %s(): there aren't matches different from l2 but there are no l2 matches also\n",
 				__FUNCTION__);
 		//return false;

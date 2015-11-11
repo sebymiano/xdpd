@@ -4,6 +4,7 @@
 #include <rofl/common/utils/c_logger.h>
 #include <fsl_utils/fsl_utils.h>
 #include "../config.h"
+#include "../util/flow_entry_utils.h"
 
 int aclId = 1;
 
@@ -39,29 +40,31 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 
 		switch (match->type) {
 		case OF1X_MATCH_IN_PORT:
-			port_no = of1x_get_match_value32(match);
-
-			if (!add_or_update_match_in_port(acl_entry, type, port_no)) {
+			if (!add_or_update_match_in_port(acl_entry, type, match)) {
 				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_match_in_port failed\n");
 				return VTSS_RC_ERROR;
 			}
-
 			break;
 		case OF1X_MATCH_IN_PHY_PORT:
-			port_no = of1x_get_match_value32(match);
-
-			if (!add_or_update_match_in_port(acl_entry, type, port_no)) {
+			if (!add_or_update_match_in_port(acl_entry, type, match)) {
 				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_match_in_port failed\n");
 				return VTSS_RC_ERROR;
 			}
-
 			break;
 		case OF1X_MATCH_ETH_DST:
+			if (!add_or_update_eth_dst(acl_entry, type, match)) {
+				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_eth_dst failed\n");
+				return VTSS_RC_ERROR;
+			}
 			break;
 		case OF1X_MATCH_ETH_SRC:
+			if (!add_or_update_eth_src(acl_entry, type, match)) {
+				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_eth_src failed\n");
+				return VTSS_RC_ERROR;
+			}
 			break;
 		default:
-			type = OF1X_MATCH_MAX;
+			//type = OF1X_MATCH_MAX;
 			break;
 		}
 
@@ -161,35 +164,5 @@ void vtss_l2sw_destroy_vtss_flow_entry(vtss_l2sw_flow_entry_t* entry) {
 		return;
 
 	free(entry);
-}
-
-bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, int port_no) {
-	if (is_valid_port(port_no) && !is_internal_port(port_no)) {
-		if (type == OF1X_MATCH_MAX) {
-			//This is the first match
-			if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ANY, acl_entry) != VTSS_RC_OK) {
-				ROFL_ERR(
-						"["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: failed to initialize ACL entry for OF1X_MATCH_IN_PORT\n");
-				return VTSS_RC_ERROR;
-			}
-
-			//TODO: Maybe this initialization should be done directly in the action generate_acl_entry_actions
-			//Forward to CPU
-			acl_entry->action.cpu = false;
-			//Only first frame forwarded to CPU
-			acl_entry->action.cpu_once = false;
-			//CPU queue
-			//acl_entry->action.cpu_queue = NULL;
-			//Allow learning
-			acl_entry->action.learn = false;
-		}
-
-		acl_entry->port_list[port_no] = TRUE;
-
-		return true;
-	}
-
-	return false;
-
 }
 
