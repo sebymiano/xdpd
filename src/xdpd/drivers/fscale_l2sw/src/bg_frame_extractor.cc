@@ -111,7 +111,7 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 }
 
 /* Dump frame */
-static void dump_frame(vtss_packet_rx_header_t *header, vtss_packet_rx_queue_t queue, u8 *frame) {
+/*static void dump_frame(vtss_packet_rx_header_t *header, vtss_packet_rx_queue_t queue, u8 *frame) {
 	char buf[100], *p;
 	u32 i;
 
@@ -128,7 +128,7 @@ static void dump_frame(vtss_packet_rx_header_t *header, vtss_packet_rx_queue_t q
 			ROFL_INFO("%s\n", buf);
 	}
 	ROFL_INFO("\n");
-}
+}*/
 
 /*
  * Receive at most <count> frames
@@ -152,7 +152,7 @@ void read_frame_from_cpu_queues(u32 count) {
 			nothing_received = false;
 			ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: Received frame on port: %u, queue: %u, length: %u\n",
 					header.port_no, queue, header.length);
-			dump_frame(&header, queue, frame);
+			//dump_frame(&header, queue, frame);
 			generate_new_packet_in(&header, queue, frame);
 		}
 
