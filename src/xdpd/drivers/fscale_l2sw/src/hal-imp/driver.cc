@@ -69,7 +69,7 @@ hal_result_t hal_driver_init(hal_extension_ops_t* extensions,
 	ROFL_INFO("["DRIVER_NAME"] launching background frame extractor from hal_driver_init\n");
 
 	//Initialize a frame extractor for CPU frames
-	launch_background_frame_extractor();
+	//launch_background_frame_extractor();
 
 	ROFL_INFO("["DRIVER_NAME"] background frame extractor launched\n");
 
@@ -104,7 +104,7 @@ hal_result_t hal_driver_destroy() {
 	//In this function you allow the platform
 	//to be properly cleaning its own state
 
-	stop_background_frame_extractor();
+	//stop_background_frame_extractor();
 
 	stop_background_tasks_manager();
 

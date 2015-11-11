@@ -59,7 +59,7 @@ void check_port_status() {
 	for (port_no = VTSS_PORT_NO_START; port_no < VTSS_PORT_NO_END; port_no++) {
 		if (is_valid_port(port_no) && !is_internal_port(port_no)) {
 			if (vtss_phy_status_get(NULL, port_no, &status_phy) != VTSS_RC_OK) {
-				ROFL_ERR("[fscale_l2sw]bg_taskmanager.cc: can't get status for port phy\n");
+				ROFL_ERR("[fscale_l2sw] bg_taskmanager.cc: can't get status for port phy\n");
 				//Can't get status for port phy
 				continue;
 			}
@@ -71,14 +71,14 @@ void check_port_status() {
 
 			if (port->up && (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
 				//Port changed to down state
-				ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: Port changed to down state, updating state...\n");
+				ROFL_INFO("[fscale_l2sw] bg_taskmanager.cc: Port changed to down state, updating state...\n");
 				update_port_status(iface_name, FALSE);
-				ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: Port state updated");
+				ROFL_INFO("[fscale_l2sw] bg_taskmanager.cc: Port state updated");
 			} else if (!port->up && (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
-				ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: Port changed to up state, updating state...\n");
+				ROFL_INFO("[fscale_l2sw] bg_taskmanager.cc: Port changed to up state, updating state...\n");
 				//Port changed to up state
 				update_port_status(iface_name, TRUE);
-				ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: Port state updated\n");
+				ROFL_INFO("[fscale_l2sw] bg_taskmanager.cc: Port state updated\n");
 			}
 		}
 	}
