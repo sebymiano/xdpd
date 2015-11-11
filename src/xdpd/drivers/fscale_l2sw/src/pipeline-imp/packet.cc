@@ -150,7 +150,6 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 
 		if (unlikely(!sw)) {
 			bufferpool::release_buffer(pkt);
-			ROFL_DEBUG("["DRIVER_NAME"] packet.cc: sw is NULL");
 			return;
 		}
 
@@ -187,14 +186,8 @@ void platform_packet_output(datapacket_t* pkt, switch_port_t* output_port) {
 		for (unsigned i = 1; i < LOGICAL_SWITCH_MAX_LOG_PORTS; i++) {
 			port_it = sw->logical_ports[i].port;
 
-			if (!port_it) {
-				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port is NULL\n");
-			}
-
 			if (sw->logical_ports[i].attachment_state == LOGICAL_PORT_STATE_ATTACHED) {
 				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port %u state attached\n", i);
-			} else {
-				ROFL_DEBUG("["DRIVER_NAME"] packet.cc: port %u state not attached\n", i);
 			}
 
 			//Check port is not incoming port, exists, and is up
