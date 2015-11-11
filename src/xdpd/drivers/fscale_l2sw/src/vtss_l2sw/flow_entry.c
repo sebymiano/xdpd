@@ -12,7 +12,6 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 
 	of1x_match_t* match;
 	of1x_match_type_t type = OF1X_MATCH_MAX;
-	uint8_t port_no;
 
 	ROFL_DEBUG("["DRIVER_NAME"] %s num_of_matches: %x\n", __FUNCTION__, of1x_entry->matches.num_elements);
 

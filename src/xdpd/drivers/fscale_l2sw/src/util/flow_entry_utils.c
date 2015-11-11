@@ -116,7 +116,7 @@ bool add_or_update_eth_src(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_m
 		BOOL port_list[VTSS_PORT_ARRAY_SIZE];
 
 		//Save the current value
-		memcpy(&port_list, &acl_entry.port_list, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry.port_list[0]));
+		memcpy(&port_list, &acl_entry->port_list, VTSS_PORT_ARRAY_SIZE * sizeof(port_list[0]));
 
 		if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ETYPE, acl_entry) != VTSS_RC_OK) {
 			ROFL_ERR(
@@ -125,7 +125,7 @@ bool add_or_update_eth_src(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_m
 		}
 
 		//Restore the previous port_in
-		memcpy(&acl_entry.port_list, &port_list, VTSS_PORT_ARRAY_SIZE * sizeof(port_list[0]));
+		memcpy(&acl_entry->port_list, &port_list, VTSS_PORT_ARRAY_SIZE * sizeof(port_list[0]));
 	}
 
 	//FIXME: Maybe here I should create the eth struct if it has been initialized with FRAME_ANY
