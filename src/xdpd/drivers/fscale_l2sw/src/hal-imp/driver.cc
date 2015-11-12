@@ -451,6 +451,8 @@ hal_result_t hal_driver_bring_port_up(const char* name) {
 		return HAL_FAILURE;
 	}
 
+	port->up = true;
+
 	return HAL_SUCCESS;
 }
 
@@ -479,6 +481,8 @@ hal_result_t hal_driver_bring_port_down(const char* name) {
 		assert(0);
 		return HAL_FAILURE;
 	}
+
+	port->up = false;
 
 	return HAL_SUCCESS;
 }

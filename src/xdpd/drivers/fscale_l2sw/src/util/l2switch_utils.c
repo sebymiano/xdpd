@@ -115,7 +115,7 @@ bool is_entry_for_mac_table(of1x_flow_entry_t * entry) {
 		ROFL_INFO(
 				"["DRIVER_NAME"] %s(): fine :) all actions and entries are l2 and compatible with MAC Table Offloading\n",
 				__FUNCTION__);
-		//return false;
+		return true;
 	}
 
 	ROFL_INFO("["DRIVER_NAME"] %s(): for MAC Table Offloading the entry should contains at least eth_dst \n",
