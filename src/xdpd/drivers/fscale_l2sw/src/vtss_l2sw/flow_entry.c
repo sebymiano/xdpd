@@ -148,7 +148,9 @@ vtss_rc vtss_l2sw_generate_mac_entry(vtss_mac_table_entry_t* mac_entry, of1x_flo
 	of1x_packet_action_t* action;
 	uint16_t port;
 
-	memset(&mac_entry, 0, sizeof(vtss_mac_table_entry_t));
+	ROFL_DEBUG("["DRIVER_NAME"] calling %s \n", __FUNCTION__);
+
+	memset(mac_entry, 0, sizeof(vtss_mac_table_entry_t));
 	//Default VLAN
 	mac_entry->vid_mac.vid = 1;
 	mac_entry->locked = true; /* static */
