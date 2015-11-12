@@ -60,75 +60,88 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 
 	port = physical_switch_get_port_by_name(iface_name);
 
-	if (port->of_generate_packet_in == false) {
-		ROFL_DEBUG("["DRIVER_NAME"] port %d cannot generate pkt_in \n", header->port_no);
-		return;
-	}
+	if (port && port->is_attached_to_sw && port->of_generate_packet_in) {
 
-	//Retrieve an empty buffer
-	datapacket_t* pkt = xdpd::gnu_linux::bufferpool::get_buffer();
+		//Retrieve an empty buffer
+		datapacket_t* pkt = xdpd::gnu_linux::bufferpool::get_buffer();
 
-	if (!pkt)
-		return;
+		if (!pkt)
+			return;
 
-	xdpd::gnu_linux::datapacketx86* pack = (xdpd::gnu_linux::datapacketx86*) pkt->platform_state;
+		xdpd::gnu_linux::datapacketx86* pack = (xdpd::gnu_linux::datapacketx86*) pkt->platform_state;
 
-	pack->init(frame, header->length, port->attached_sw, port->of_port_num, 0, true, false);
+		pack->init(frame, header->length, port->attached_sw, port->of_port_num, 0, true, false);
 
-	of1x_switch_t* sw = (of1x_switch_t*) port->attached_sw;
+		of1x_switch_t* sw = (of1x_switch_t*) port->attached_sw;
 
-	of_switch_t* lsw;
-	lsw = physical_switch_get_logical_switch_by_dpid(sw->dpid);
+		of_switch_t* lsw;
+		lsw = physical_switch_get_logical_switch_by_dpid(sw->dpid);
 
-	xdpd::gnu_linux::datapacket_storage* storage;
-	storage = ((logical_switch_internals*) lsw->platform_state)->storage;
+		xdpd::gnu_linux::datapacket_storage* storage;
+		storage = ((logical_switch_internals*) lsw->platform_state)->storage;
 
-	//TODO: Check if this assignment is correct
-	pack->pktin_send_len = ((of1x_switch_t*) sw)->pipeline.miss_send_len;
+		//TODO: Check if this assignment is correct
+		pack->pktin_send_len = ((of1x_switch_t*) sw)->pipeline.miss_send_len;
 
-	xdpd::gnu_linux::storeid storage_id = storage->store_packet(pkt);
-	ROFL_DEBUG("["DRIVER_NAME"] PACKET_IN storage ID %d for datapacket pkt %d dpid %d  \n", storage_id, pkt, sw->dpid);
+		xdpd::gnu_linux::storeid storage_id = storage->store_packet(pkt);
+		ROFL_DEBUG("["DRIVER_NAME"] PACKET_IN storage ID %d for datapacket pkt %d dpid %d  \n", storage_id, pkt,
+				sw->dpid);
 
-	//Fill matches
-	fill_packet_matches(pkt, &matches);
+		//Fill matches
+		fill_packet_matches(pkt, &matches);
 
-	//Process packet in
-	hal_result r = hal_cmm_process_of1x_packet_in(sw->dpid, pack->pktin_table_id, pack->pktin_reason,
-			pack->clas_state.port_in, storage_id, pkt->__cookie, pack->get_buffer(), pack->pktin_send_len,
-			pack->get_buffer_length(), &matches);
+		//Process packet in
+		hal_result r = hal_cmm_process_of1x_packet_in(sw->dpid, pack->pktin_table_id, pack->pktin_reason,
+				pack->clas_state.port_in, storage_id, pkt->__cookie, pack->get_buffer(), pack->pktin_send_len,
+				pack->get_buffer_length(), &matches);
 
-	ROFL_DEBUG(
-			"["DRIVER_NAME"] bg_frame_extractor.cc sw->dpid = %u, pack->pktin_table_id = %u, reason = %u \
+		ROFL_DEBUG(
+				"["DRIVER_NAME"] bg_frame_extractor.cc sw->dpid = %u, pack->pktin_table_id = %u, reason = %u \
 						 port_in = %u, storage_id = %u, pktin_send_len = %u, buffer_length = %u\n",
-			sw->dpid, pack->pktin_table_id, pack->pktin_reason, pack->clas_state.port_in, storage_id,
-			pack->pktin_send_len, pack->get_buffer_length());
+				sw->dpid, pack->pktin_table_id, pack->pktin_reason, pack->clas_state.port_in, storage_id,
+				pack->pktin_send_len, pack->get_buffer_length());
 
-	if (HAL_FAILURE == r)
-		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful \n");
-	if (HAL_SUCCESS == r)
-		ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in successful \n");
+		if (HAL_FAILURE == r) {
+			ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful \n");
+			xdpd::gnu_linux::bufferpool::release_buffer(pkt);
+		}
+		if (HAL_SUCCESS == r)
+			ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in successful \n");
+	} else {
+		if (!port) {
+			ROFL_DEBUG("["DRIVER_NAME"] port doesn't exist");
+			return;
+		}
+
+		if (!port->is_attached_to_sw) {
+			ROFL_DEBUG("["DRIVER_NAME"] port %d is not attached to a logical switch\n", header->port_no);
+		}
+		if (!port->of_generate_packet_in) {
+			ROFL_DEBUG("["DRIVER_NAME"] port %d cannot generate pkt_in \n", header->port_no);
+		}
+	}
 
 }
 
 /* Dump frame */
 /*static void dump_frame(vtss_packet_rx_header_t *header, vtss_packet_rx_queue_t queue, u8 *frame) {
-	char buf[100], *p;
-	u32 i;
+ char buf[100], *p;
+ u32 i;
 
-	ROFL_INFO("["DRIVER_NAME"] Received frame on port: %u, queue: %u, length: %u\n", header->port_no, queue,
-			header->length);
-	for (i = 0, p = &buf[0]; i < header->length; i++) {
-		if ((i % 16) == 0) {
-			p = &buf[0];
-			p += sprintf(p, "%04x: ", i);
-		}
+ ROFL_INFO("["DRIVER_NAME"] Received frame on port: %u, queue: %u, length: %u\n", header->port_no, queue,
+ header->length);
+ for (i = 0, p = &buf[0]; i < header->length; i++) {
+ if ((i % 16) == 0) {
+ p = &buf[0];
+ p += sprintf(p, "%04x: ", i);
+ }
 
-		p += sprintf(p, "%02x%c", frame[i], ((i + 9) % 16) == 0 ? '-' : ' ');
-		if (((i + 1) % 16) == 0 || (i + 1) == header->length)
-			ROFL_INFO("%s\n", buf);
-	}
-	ROFL_INFO("\n");
-}*/
+ p += sprintf(p, "%02x%c", frame[i], ((i + 9) % 16) == 0 ? '-' : ' ');
+ if (((i + 1) % 16) == 0 || (i + 1) == header->length)
+ ROFL_INFO("%s\n", buf);
+ }
+ ROFL_INFO("\n");
+ }*/
 
 /*
  * Receive at most <count> frames
