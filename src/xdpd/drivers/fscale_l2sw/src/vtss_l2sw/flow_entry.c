@@ -157,7 +157,7 @@ vtss_rc vtss_l2sw_generate_mac_entry(vtss_mac_table_entry_t* mac_entry, of1x_flo
 	for (match = of1x_entry->matches.head; match; match = match->next) {
 		switch (match->type) {
 		case OF1X_MATCH_ETH_DST:
-			memcpy(&mac_entry.vid_mac.mac, &(match->__tern->value.u64), 6);
+			memcpy(&mac_entry->vid_mac.mac, &(match->__tern->value.u64), 6);
 			break;
 		case OF1X_MATCH_ETH_SRC:
 			ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: skipping ethernet src in mac entry\n");

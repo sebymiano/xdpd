@@ -208,7 +208,7 @@ rofl_result_t vtss_l2sw_detele_mac_entry(of1x_flow_entry_t* entry) {
 
 	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: removing acl...\n");
 
-	if (vtss_mac_table_del(NULL, hw_entry->mac_entry) != VTSS_RC_OK) {
+	if (vtss_mac_table_del(NULL, &hw_entry->mac_entry) != VTSS_RC_OK) {
 		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_ace_del failed, unable to remove the acl\n");
 		return ROFL_FAILURE;
 	}
