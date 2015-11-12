@@ -23,7 +23,8 @@ bool is_l2_entry(of1x_flow_entry_t * entry) {
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_IN_PHY_PORT);
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_DST);
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_SRC);
-	//bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_VLAN_VID);
+	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_TYPE);
+	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_VLAN_VID);
 
 	ROFL_INFO("["DRIVER_NAME"] %s(): set bitmap for no l2 matches\n", __FUNCTION__);
 
@@ -36,14 +37,14 @@ bool is_l2_entry(of1x_flow_entry_t * entry) {
 		return false;
 	}
 
-	if (!bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PORT)
-			&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PHY_PORT)
-			&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_DST)
-			&& !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_SRC)) {
-		ROFL_INFO("["DRIVER_NAME"] %s(): there aren't matches different from l2 but there are no l2 matches also\n",
-				__FUNCTION__);
-		//return false;
-	}
+	/*if (!bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PORT)
+	 && !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_IN_PHY_PORT)
+	 && !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_DST)
+	 && !bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_SRC)) {
+	 ROFL_INFO("["DRIVER_NAME"] %s(): there aren't matches different from l2 but there are no l2 matches also\n",
+	 __FUNCTION__);
+	 //return false;
+	 }*/
 
 	if (!actions_are_only_l2(entry->inst_grp.instructions[OF1X_IT_APPLY_ACTIONS].apply_actions)) {
 		ROFL_INFO("["DRIVER_NAME"] %s(): there are some actions not compatible with this driver\n", __FUNCTION__);
@@ -82,4 +83,43 @@ bool actions_are_only_l2(of1x_action_group_t* action_group) {
 	}
 
 	return true;
+}
+
+bool is_entry_for_mac_table(of1x_flow_entry_t * entry) {
+	bitmap128_t no_l2_bitmap;
+	bitmap128_t and_matches_bitmap;
+
+	bitmap128_set_all(&no_l2_bitmap);
+	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_SRC);
+	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_DST);
+	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_VLAN_VID);
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): set bitmap for mac l2 matches\n", __FUNCTION__);
+
+	and_matches_bitmap = bitmap128_and(&entry->matches.match_bm, &no_l2_bitmap);
+
+	if (!bitmap128_is_empty(&and_matches_bitmap) || !bitmap128_is_empty(&entry->matches.wildcard_bm)) {
+		//TODO: Here I'm sure that there are no entries different from l2, but I'm not sure that there are still l2 entries
+
+		ROFL_INFO("["DRIVER_NAME"] %s(): there are matches different from l2 or wildcard\n", __FUNCTION__);
+		return false;
+	}
+
+	if (!actions_are_only_l2(entry->inst_grp.instructions[OF1X_IT_APPLY_ACTIONS].apply_actions)) {
+		ROFL_INFO("["DRIVER_NAME"] %s(): there are some actions not compatible with this driver\n", __FUNCTION__);
+		return false;
+	}
+
+	if (bitmap128_is_bit_set(&entry->matches.match_bm, OF1X_MATCH_ETH_DST)) {
+
+		ROFL_INFO(
+				"["DRIVER_NAME"] %s(): fine :) all actions and entries are l2 and compatible with MAC Table Offloading\n",
+				__FUNCTION__);
+		//return false;
+	}
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): for MAC Table Offloading the entry should contains at least eth_dst \n",
+			__FUNCTION__);
+
+	return false;
 }

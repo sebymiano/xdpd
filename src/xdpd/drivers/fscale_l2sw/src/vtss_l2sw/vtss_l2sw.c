@@ -7,6 +7,7 @@
 #include <rofl/common/utils/c_logger.h>
 #include <vtss_api/vtss_api.h>
 #include <vtss_api/vtss_misc_api.h>
+#include <vtss_api/vtss_l2_api.h>
 #include <board_init/board_init.h>
 #include <fsl_utils/fsl_utils.h>
 #include <port_setup/port_setup.h>
@@ -122,6 +123,7 @@ rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 	if (!vtss_entry)
 		return ROFL_FAILURE;
 
+	vtss_entry->type = VTSS_ENTRY_TYPE_ACL;
 	vtss_entry->acl_id = aclId;
 	//Do the association with the vtss_l2sw state
 	entry->platform_state = (of1x_flow_entry_platform_state_t*) vtss_entry;
@@ -150,7 +152,7 @@ rofl_result_t vtss_l2sw_delete_flow_entry(of1x_flow_entry_t* entry) {
 
 	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: removing acl...\n");
 
-	if(vtss_ace_del(NULL, hw_entry->acl_id) != VTSS_RC_OK){
+	if (vtss_ace_del(NULL, hw_entry->acl_id) != VTSS_RC_OK) {
 		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_ace_del failed, unable to remove the acl\n");
 		return ROFL_FAILURE;
 	}
@@ -162,3 +164,59 @@ rofl_result_t vtss_l2sw_delete_flow_entry(of1x_flow_entry_t* entry) {
 
 	return ROFL_SUCCESS;
 }
+
+rofl_result_t vtss_l2sw_add_mac_entry(of1x_flow_entry_t* entry) {
+	vtss_mac_table_entry_t mac_entry;
+	vtss_l2sw_flow_entry_t* vtss_entry;
+
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: calling vtss_l2sw_add_mac_entry...\n");
+
+	if (vtss_l2sw_generate_mac_entry(&mac_entry, entry) != VTSS_RC_OK) {
+		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_add_mac_entry failed");
+		return ROFL_FAILURE;
+	}
+
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: adding mac entry...\n");
+
+	vtss_entry = vtss_l2sw_init_vtss_flow_entry();
+	if (!vtss_entry)
+		return ROFL_FAILURE;
+
+	vtss_entry->type = VTSS_ENTRY_TYPE_MAC;
+	memcpy(&vtss_entry->mac_entry, &mac_entry.vid_mac, sizeof(vtss_vid_mac_t));
+	entry->platform_state = (of1x_flow_entry_platform_state_t*) vtss_entry;
+
+	/* Add MAC Table entry */
+	if (vtss_mac_table_add(NULL, &mac_entry) != VTSS_RC_OK) {
+		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_mac_table_add failed, unable to add the mac entry\n");
+		vtss_l2sw_destroy_vtss_flow_entry(vtss_entry);
+		return ROFL_FAILURE;
+	}
+
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: mac entry added...\n");
+
+	return ROFL_SUCCESS;
+}
+
+rofl_result_t vtss_l2sw_detele_mac_entry(of1x_flow_entry_t* entry) {
+	//Recover the position
+	vtss_l2sw_flow_entry_t* hw_entry = (vtss_l2sw_flow_entry_t*) entry->platform_state;
+
+	//Check
+	if (!hw_entry || hw_entry->type != VTSS_ENTRY_TYPE_MAC)
+		return ROFL_FAILURE;
+
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: removing acl...\n");
+
+	if (vtss_mac_table_del(NULL, hw_entry->mac_entry) != VTSS_RC_OK) {
+		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_ace_del failed, unable to remove the acl\n");
+		return ROFL_FAILURE;
+	}
+
+	vtss_l2sw_destroy_vtss_flow_entry(hw_entry);
+
+	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: acl removed...\n");
+
+	return ROFL_SUCCESS;
+}
+

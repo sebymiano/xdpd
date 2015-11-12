@@ -15,11 +15,16 @@ extern int aclId;
 
 #define ACL_INVALID_ID -1
 
+typedef enum vtss_l2sw_flow_entry_type {
+	VTSS_ENTRY_TYPE_ACL,
+	VTSS_ENTRY_TYPE_MAC
+} vtss_l2sw_flow_entry_type_t;
 //Entry
-typedef struct vtss_l2sw_flow_entry{
-	//ACL ID
-	unsigned int acl_id;
-}vtss_l2sw_flow_entry_t;
+typedef struct vtss_l2sw_flow_entry {
+	vtss_l2sw_flow_entry_type_t type;
+	unsigned int acl_id; 	//ACL ID
+	vtss_vid_mac_t mac_entry;
+} vtss_l2sw_flow_entry_t;
 
 //C++ extern C
 ROFL_BEGIN_DECLS
@@ -29,6 +34,8 @@ vtss_l2sw_flow_entry_t* vtss_l2sw_init_vtss_flow_entry(void);
 void vtss_l2sw_destroy_vtss_flow_entry(vtss_l2sw_flow_entry_t* entry);
 
 vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_entry_t* of1x_entry);
+
+vtss_rc vtss_l2sw_generate_mac_entry(vtss_mac_table_entry_t* mac_entry, of1x_flow_entry_t* of1x_entry);
 
 vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_entry_t* of1x_entry);
 

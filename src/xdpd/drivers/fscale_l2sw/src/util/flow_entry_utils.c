@@ -65,6 +65,10 @@ bool add_or_update_eth_dst(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_m
 		//acl_entry->action.cpu_queue = NULL;
 		//Disable learning
 		acl_entry->action.learn = false;
+
+		/* Monitor all ports */
+		memset(acl_entry->port_list, TRUE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->port_list[0]));
+
 	} else if (type == OF1X_MATCH_IN_PORT || type == OF1X_MATCH_IN_PHY_PORT) {
 		BOOL port_list[VTSS_PORT_ARRAY_SIZE];
 
@@ -112,6 +116,10 @@ bool add_or_update_eth_src(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_m
 		//acl_entry->action.cpu_queue = NULL;
 		//Disable learning
 		acl_entry->action.learn = false;
+
+		/* Monitor all ports */
+		memset(acl_entry->port_list, TRUE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->port_list[0]));
+
 	} else if (type == OF1X_MATCH_IN_PORT || type == OF1X_MATCH_IN_PHY_PORT) {
 		BOOL port_list[VTSS_PORT_ARRAY_SIZE];
 

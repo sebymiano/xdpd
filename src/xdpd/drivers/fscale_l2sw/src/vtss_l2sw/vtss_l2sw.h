@@ -20,7 +20,11 @@ rofl_result_t vtss_l2sw_destroy(void);
 
 rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry);
 
+rofl_result_t vtss_l2sw_add_mac_entry(of1x_flow_entry_t* entry);
+
 rofl_result_t vtss_l2sw_delete_flow_entry(of1x_flow_entry_t* entry);
+
+rofl_result_t vtss_l2sw_detele_mac_entry(of1x_flow_entry_t* entry);
 
 ROFL_END_DECLS
 
