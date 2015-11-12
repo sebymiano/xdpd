@@ -60,7 +60,7 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 
 	port = physical_switch_get_port_by_name(iface_name);
 
-	if (port && port->is_attached_to_sw && port->of_generate_packet_in) {
+	if ((port != NULL) && (port->attached_sw != NULL) && port->of_generate_packet_in) {
 
 		//Retrieve an empty buffer
 		datapacket_t* pkt = xdpd::gnu_linux::bufferpool::get_buffer();
