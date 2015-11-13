@@ -27,6 +27,7 @@ rofl_result_t vtss_l2sw_init() {
 	vtss_trace_conf_t conf;
 	vtss_trace_layer_t layer;
 	vtss_trace_group_t group;
+	vtss_learn_mode_t learn_mode;
 
 	int port_no;
 	switch_port_t* port;
@@ -43,32 +44,33 @@ rofl_result_t vtss_l2sw_init() {
 
 	board_init();
 
+	//Automatic learning done by switch chip (default enabled)
+	learn_mode.automatic = FALSE;
+	//Learn frames copied to CPU (default disabled)
+	learn_mode.cpu = FALSE;
+	//Learn frames discarded (default disabled)
+	learn_mode.discard = FALSE;
+
 	for (port_no = VTSS_PORT_NO_START; port_no < VTSS_PORT_NO_END; port_no++) {
 		//Check only if the port is in the valid range
 		if (is_valid_port(port_no)) {
 			port_setup_init(port_no, 0);
 			vtss_mac_table_port_flush(NULL, port_no);
-			if (!is_internal_port(port_no)) {
 
-				if (initialize_port(port_no, &port) != ROFL_SUCCESS || !port)
-					continue;
+			if (initialize_port(port_no, &port) != ROFL_SUCCESS || !port)
+				continue;
 
-				//Add to available ports
-				if (physical_switch_add_port(port) != ROFL_SUCCESS) {
-					return ROFL_FAILURE;
-				}
-
-				vtss_port_state_set(NULL, port_no, FALSE);
-				port->up = false;
-
-			} else {
-				//Enable forwarding only on the internal ports in the initialization phase
-				vtss_port_state_set(NULL, port_no, TRUE);
+			//Add to available ports
+			if (physical_switch_add_port(port) != ROFL_SUCCESS) {
+				return ROFL_FAILURE;
 			}
+
+			//Disable forwarding on port
+			vtss_port_state_set(NULL, port_no, FALSE);
+			vtss_learn_port_mode_set(NULL, port_no, &learn_mode);
+			port->up = false;
 		}
 	}
-
-	//Here maybe I should create a new thread for receiving new frame
 
 	return ROFL_SUCCESS;
 
@@ -270,7 +272,8 @@ rofl_result_t vtss_l2sw_detele_mac_entry_acl(of1x_flow_entry_t* entry) {
 	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: removing mac entry acl...\n");
 
 	if (vtss_ace_del(NULL, hw_entry->acl_id) != VTSS_RC_OK) {
-		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_l2sw_detele_mac_entry_acl failed, unable to remove the mac entry acl\n");
+		ROFL_ERR(
+				"["DRIVER_NAME"] vtss_l2sw.c: vtss_l2sw_detele_mac_entry_acl failed, unable to remove the mac entry acl\n");
 		return ROFL_FAILURE;
 	}
 

@@ -228,6 +228,8 @@ vtss_rc vtss_l2sw_generate_mac_entry_acl(vtss_ace_t* mac_acl_entry, of1x_flow_en
 	of1x_match_t* match;
 	of1x_packet_action_t* action;
 	uint16_t port;
+	uint16_t vlan_id;
+	uint16_t vlan_id_mask;
 
 	ROFL_DEBUG("["DRIVER_NAME"] calling %s \n", __FUNCTION__);
 
@@ -262,8 +264,8 @@ vtss_rc vtss_l2sw_generate_mac_entry_acl(vtss_ace_t* mac_acl_entry, of1x_flow_en
 			memcpy(&mac_acl_entry->frame.etype.smac.mask, &(match->__tern->mask.u64), 6);
 			break;
 		case OF1X_MATCH_VLAN_VID:
-			uint16_t vlan_id = of1x_get_match_value16(match);
-			uint16_t vlan_id_mask = of1x_get_mask_value16(match);
+			vlan_id = of1x_get_match_value16(match);
+			vlan_id_mask = of1x_get_match_mask16(match);
 			memcpy(&mac_acl_entry->vlan.vid.value, &vlan_id, sizeof(vlan_id));
 			memcpy(&mac_acl_entry->vlan.vid.mask, &vlan_id_mask, sizeof(vlan_id_mask));
 			break;
