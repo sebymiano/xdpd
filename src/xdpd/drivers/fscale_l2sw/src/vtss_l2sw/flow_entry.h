@@ -37,6 +37,8 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 
 vtss_rc vtss_l2sw_generate_mac_entry(vtss_mac_table_entry_t* mac_entry, of1x_flow_entry_t* of1x_entry);
 
+vtss_rc vtss_l2sw_generate_mac_entry_acl(vtss_ace_t* mac_acl_entry, of1x_flow_entry_t* of1x_entry);
+
 vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_entry_t* of1x_entry);
 
 //C++ extern C

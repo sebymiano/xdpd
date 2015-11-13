@@ -190,7 +190,7 @@ vtss_rc vtss_l2sw_generate_mac_entry(vtss_mac_table_entry_t* mac_entry, of1x_flo
 
 		case OF1X_AT_OUTPUT:
 			port = of1x_get_packet_action_field32(action);
-			ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions   ENTRY port %d\n", port);
+			ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_mac_entry   ENTRY port %d\n", port);
 			switch (of1x_get_packet_action_field32(action)) {
 			case OF1X_PORT_CONTROLLER:
 				ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: action for redirect packets to controller\n");
@@ -224,6 +224,108 @@ vtss_rc vtss_l2sw_generate_mac_entry(vtss_mac_table_entry_t* mac_entry, of1x_flo
 	return VTSS_RC_OK;
 }
 
+vtss_rc vtss_l2sw_generate_mac_entry_acl(vtss_ace_t* mac_acl_entry, of1x_flow_entry_t* of1x_entry) {
+	of1x_match_t* match;
+	of1x_packet_action_t* action;
+	uint16_t port;
+
+	ROFL_DEBUG("["DRIVER_NAME"] calling %s \n", __FUNCTION__);
+
+	if (aclId == VTSS_ACE_ID_LAST) {
+		ROFL_ERR("["DRIVER_NAME"] flow_entry.c: reached maximum number of acl rules\n");
+		return VTSS_RC_ERROR;
+	}
+
+	if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ETYPE, mac_acl_entry) != VTSS_RC_OK) {
+		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_mac_entry_acl: failed to initialize ACL entry\n");
+		return VTSS_RC_ERROR;
+	}
+
+	/* Monitor all ports */
+	memset(mac_acl_entry->port_list, TRUE, VTSS_PORT_ARRAY_SIZE * sizeof(mac_acl_entry->port_list[0]));
+	mac_acl_entry->action.learn = true;
+	mac_acl_entry->action.cpu = false;
+	mac_acl_entry->action.cpu_once = false;
+	mac_acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_REDIR;
+
+	//Go through all the matches and set entry matches
+	for (match = of1x_entry->matches.head; match; match = match->next) {
+		switch (match->type) {
+		case OF1X_MATCH_ETH_DST:
+			ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: added dst mac in acl mac entry\n");
+			memcpy(&mac_acl_entry->frame.etype.dmac.value, &(match->__tern->value.u64), 6);
+			memcpy(&mac_acl_entry->frame.etype.dmac.mask, &(match->__tern->mask.u64), 6);
+			break;
+		case OF1X_MATCH_ETH_SRC:
+			ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: added src mac in acl mac entry\n");
+			memcpy(&mac_acl_entry->frame.etype.smac.value, &(match->__tern->value.u64), 6);
+			memcpy(&mac_acl_entry->frame.etype.smac.mask, &(match->__tern->mask.u64), 6);
+			break;
+		case OF1X_MATCH_VLAN_VID:
+			uint16_t vlan_id = of1x_get_match_value16(match);
+			uint16_t vlan_id_mask = of1x_get_mask_value16(match);
+			memcpy(&mac_acl_entry->vlan.vid.value, &vlan_id, sizeof(vlan_id));
+			memcpy(&mac_acl_entry->vlan.vid.mask, &vlan_id_mask, sizeof(vlan_id_mask));
+			break;
+		default:
+			return VTSS_RC_ERROR;
+			break;
+		}
+	}
+
+	ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: added mac and vlan...adding actions\n");
+
+	//Now add the destination port
+
+	action = of1x_entry->inst_grp.instructions[OF1X_IT_APPLY_ACTIONS].apply_actions->head;
+
+	if (!action) {
+		assert(0);
+		return VTSS_RC_ERROR;
+	}
+
+	memset(&mac_acl_entry->action.port_list, FALSE, VTSS_PORT_ARRAY_SIZE * sizeof(mac_acl_entry->action.port_list[0]));
+
+	//Loop over apply actions only
+	for (; action; action = action->next) {
+		switch (action->type) {
+
+		case OF1X_AT_OUTPUT:
+			port = of1x_get_packet_action_field32(action);
+			ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_mac_entry_acl ENTRY port %d\n", port);
+			switch (of1x_get_packet_action_field32(action)) {
+			case OF1X_PORT_CONTROLLER:
+				ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: action for redirect packets to controller\n");
+				mac_acl_entry->action.cpu = false;
+				break;
+			case OF1X_PORT_ALL:
+			case OF1X_PORT_FLOOD:
+				ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: action for flooding packets\n");
+				memset(&mac_acl_entry->action.port_list, true, VTSS_PORT_ARRAY_SIZE * sizeof(mac_acl_entry->action.port_list[0]));
+				break;
+			case OF1X_PORT_NORMAL:
+			case OF1X_PORT_IN_PORT:
+				ROFL_ERR("["DRIVER_NAME"] flow_entry.c: action not supported\n");
+				return VTSS_RC_ERROR;
+			default:
+				if (is_valid_port(port)) {
+					mac_acl_entry->action.port_list[port] = true;
+				} else {
+					ROFL_ERR("["DRIVER_NAME"] flow_entry.c: wrong port in vtss_l2sw_generate_mac_entry_acl\n");
+					assert(0);
+				}
+				break;
+			}
+			break;
+		default:
+			return VTSS_RC_ERROR;
+			break;
+		}
+	}
+
+	return VTSS_RC_OK;
+
+}
 vtss_l2sw_flow_entry_t* vtss_l2sw_init_vtss_flow_entry() {
 	vtss_l2sw_flow_entry_t* entry;
 

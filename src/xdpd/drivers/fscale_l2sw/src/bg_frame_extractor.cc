@@ -103,6 +103,8 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 
 		if (HAL_FAILURE == r) {
 			ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful \n");
+
+			//TODO: I should remove also the packet from the storage (is not possible)
 			xdpd::gnu_linux::bufferpool::release_buffer(pkt);
 		}
 		if (HAL_SUCCESS == r)
