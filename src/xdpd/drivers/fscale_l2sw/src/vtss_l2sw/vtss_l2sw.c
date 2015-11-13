@@ -72,8 +72,20 @@ rofl_result_t vtss_l2sw_init() {
 		}
 	}
 
+	vtss_l2sw_remove_all_acl();
+
 	return ROFL_SUCCESS;
 
+}
+
+rofl_result_t vtss_l2sw_remove_all_acl(){
+	uint32_t i;
+
+	for(i = 0; i < FSCALE_L2SW_MAX_ACL_ID; i++){
+		vtss_ace_del(NULL, i);
+	}
+
+	return ROFL_SUCCESS;
 }
 
 rofl_result_t vtss_l2sw_destroy() {
@@ -95,6 +107,8 @@ rofl_result_t vtss_l2sw_destroy() {
 			destroy_port(array[i]);
 		}
 	}
+
+	vtss_l2sw_remove_all_acl();
 
 	return ROFL_SUCCESS;
 }
