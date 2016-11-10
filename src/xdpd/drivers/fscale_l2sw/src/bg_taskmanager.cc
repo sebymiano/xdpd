@@ -69,15 +69,15 @@ void check_port_status() {
 
 			port = physical_switch_get_port_by_name(iface_name);
 
-			if (port->up && (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
+			if ( !((port->state & PORT_STATE_LINK_DOWN) > 0) && (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
 				//Port changed to down state
 				ROFL_INFO("["DRIVER_NAME"] %s(): Port changed to down state, updating state...\n", __FUNCTION__);
-				update_port_status(iface_name, FALSE);
+				update_port_link_status(iface_name, FALSE);
 				ROFL_INFO("["DRIVER_NAME"] %s(): Port state updated", __FUNCTION__);
-			} else if (!port->up && (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
+			} else if (((port->state & PORT_STATE_LINK_DOWN) > 0) && (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
 				ROFL_INFO("["DRIVER_NAME"] %s(): Port changed to up state, updating state...\n", __FUNCTION__);
 				//Port changed to up state
-				update_port_status(iface_name, TRUE);
+				update_port_link_status(iface_name, TRUE);
 				ROFL_INFO("["DRIVER_NAME"] %s(): Port state updated\n", __FUNCTION__);
 			}
 		}
@@ -205,7 +205,7 @@ void* x86_background_tasks_routine(void* param) {
 		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: processing timeouts...\n");
 		process_timeouts();
 
-		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: checking port status...\n");
+		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: checking port link status...\n");
 		check_port_status();
 
 	}

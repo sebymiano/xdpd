@@ -28,7 +28,7 @@
  *
  */
 
-rofl_result_t update_port_status(char * name, bool up) {
+rofl_result_t update_port_link_status(char * name, bool up) {
 	switch_port_t *port;
 	switch_port_snapshot_t *port_snapshot;
 
