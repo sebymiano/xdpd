@@ -17,6 +17,7 @@
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/hal/cmm.h>
 #include "iface_utils.h"
+#include "../config.h"
 
 #include "../vtss_l2sw/ports.h"
 
@@ -41,17 +42,19 @@ rofl_result_t update_port_link_status(char * name, bool up) {
 			((vtss_l2sw_port_t*) port->platform_port_state);
 
 	if (up) {
-		if (fscale_l2sw_bring_port_up(vtss_port) != ROFL_SUCCESS) {
+		/*if (fscale_l2sw_bring_port_up(vtss_port) != ROFL_SUCCESS) {
 			return ROFL_FAILURE;
-		}
+		}*/
 		//port->up = true;
 		port->state = PORT_STATE_LIVE;
+		ROFL_INFO("["DRIVER_NAME"] %s(): link up\n", __FUNCTION__, port_no);
 	} else {
-		if (fscale_l2sw_bring_port_down(vtss_port) != ROFL_SUCCESS) {
+		/*if (fscale_l2sw_bring_port_down(vtss_port) != ROFL_SUCCESS) {
 			return ROFL_FAILURE;
-		}
+		}*/
 		//port->up = false;
 		port->state = PORT_STATE_LINK_DOWN;
+		ROFL_INFO("["DRIVER_NAME"] %s(): link down\n", __FUNCTION__, port_no);
 	}
 
 	//Notify the change of state to the CMM
