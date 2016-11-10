@@ -44,12 +44,14 @@ rofl_result_t update_port_status(char * name, bool up) {
 		if (fscale_l2sw_bring_port_up(vtss_port) != ROFL_SUCCESS) {
 			return ROFL_FAILURE;
 		}
-		port->up = true;
+		//port->up = true;
+		port->state = PORT_STATE_LIVE;
 	} else {
 		if (fscale_l2sw_bring_port_down(vtss_port) != ROFL_SUCCESS) {
 			return ROFL_FAILURE;
 		}
-		port->up = false;
+		//port->up = false;
+		port->state = PORT_STATE_LINK_DOWN;
 	}
 
 	//Notify the change of state to the CMM

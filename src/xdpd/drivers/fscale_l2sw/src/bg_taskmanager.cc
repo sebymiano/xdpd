@@ -42,7 +42,7 @@ static pthread_t bg_thread;
 static bool bg_continue_execution = true;
 /**
  * This piece of code is meant to manage a thread that is support for:
- * 
+ *
  * - execute the expiration of the flow entries.
  * - update the status of the ports
  * - TODO: Get the packet_in events from the kernel and send appropriate OF messages
@@ -59,7 +59,7 @@ void check_port_status() {
 	for (port_no = VTSS_PORT_NO_START; port_no < VTSS_PORT_NO_END; port_no++) {
 		if (is_valid_port(port_no) && !is_internal_port(port_no)) {
 			if (vtss_phy_status_get(NULL, port_no, &status_phy) != VTSS_RC_OK) {
-				ROFL_ERR("[fscale_l2sw] bg_taskmanager.cc: can't get status for port phy\n");
+				ROFL_ERR("["DRIVER_NAME"] %s(): Can't get status for port phy\n", __FUNCTION__);
 				//Can't get status for port phy
 				continue;
 			}
@@ -71,14 +71,14 @@ void check_port_status() {
 
 			if (port->up && (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
 				//Port changed to down state
-				ROFL_INFO("[fscale_l2sw] bg_taskmanager.cc: Port changed to down state, updating state...\n");
+				ROFL_INFO("["DRIVER_NAME"] %s(): Port changed to down state, updating state...\n", __FUNCTION__);
 				update_port_status(iface_name, FALSE);
-				ROFL_INFO("[fscale_l2sw] bg_taskmanager.cc: Port state updated");
+				ROFL_INFO("["DRIVER_NAME"] %s(): Port state updated", __FUNCTION__);
 			} else if (!port->up && (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
-				ROFL_INFO("[fscale_l2sw] bg_taskmanager.cc: Port changed to up state, updating state...\n");
+				ROFL_INFO("["DRIVER_NAME"] %s(): Port changed to up state, updating state...\n", __FUNCTION__);
 				//Port changed to up state
 				update_port_status(iface_name, TRUE);
-				ROFL_INFO("[fscale_l2sw] bg_taskmanager.cc: Port state updated\n");
+				ROFL_INFO("["DRIVER_NAME"] %s(): Port state updated\n", __FUNCTION__);
 			}
 		}
 	}
@@ -243,4 +243,3 @@ rofl_result_t stop_background_tasks_manager() {
 	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: background tasks manager stopped\n");
 	return ROFL_SUCCESS;
 }
-

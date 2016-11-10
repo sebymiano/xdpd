@@ -21,7 +21,7 @@ rofl_result_t fscale_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
 
 	if (is_valid_port(port_no)) {
 		if (vtss_phy_status_get(NULL, port_no, &status_phy) != VTSS_RC_OK) {
-			ROFL_ERR("[vtss_l2sw]port.c: can't get status for port phy\n");
+			ROFL_ERR("["DRIVER_NAME"] %s(): Can't get status for port phy\n", __FUNCTION__);
 			//Can't get status for port phy
 			return ROFL_FAILURE;
 		}
@@ -29,14 +29,14 @@ rofl_result_t fscale_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
 		/* if there is no link, no need to
 		 * bring up the port
 		 */
-		if (status_phy.link == FALSE || status_phy.link_down == TRUE) {
-			ROFL_ERR("[vtss_l2sw]port.c: attempt to bring up a port that has no link\n");
-			return ROFL_FAILURE;
-		}
+		//if (status_phy.link == FALSE || status_phy.link_down == TRUE) {
+		//	ROFL_ERR("["DRIVER_NAME"] %s(): Attempt to bring up a port that has no link\n", __FUNCTION__);
+		//	return ROFL_FAILURE;
+		//}
 
 		//Enable forwarding on the specified port (bring up)
 		vtss_port_state_set(NULL, port_no, TRUE);
-		ROFL_ERR("[vtss_l2sw]port.c: port %d activated\n", port_no);
+		ROFL_ERR("["DRIVER_NAME"] %s(): port %d activated\n", __FUNCTION__, port_no);
 
 		return ROFL_SUCCESS;
 	}
@@ -52,14 +52,14 @@ rofl_result_t fscale_l2sw_bring_port_down(vtss_l2sw_port_t* port) {
 
 	if (is_valid_port(port_no)) {
 		if (vtss_phy_status_get(NULL, port_no, &status_phy) != VTSS_RC_OK) {
-			ROFL_ERR("[vtss_l2sw]port.c: can't get status for port phy\n");
+			ROFL_ERR("["DRIVER_NAME"] %s(): Can't get status for port phy\n", __FUNCTION__);
 			//Can't get status for port phy
 			return ROFL_FAILURE;
 		}
 
 		//Disable forwarding on the specified port (bring down)
 		vtss_port_state_set(NULL, port_no, FALSE);
-		ROFL_ERR("[vtss_l2sw]port.c: port %d disactivated\n", port_no);
+		ROFL_ERR("["DRIVER_NAME"] %s(): port %d disactivated\n", __FUNCTION__, port_no);
 
 		return ROFL_SUCCESS;
 	}
@@ -78,7 +78,7 @@ rofl_result_t fscale_l2sw_initialize_port(int port_no, switch_port_t** port) {
 	FSCALE_L2SW_INTERFACE_BASE_NAME"%d", port_no);
 
 	//Initialize the switch_port structure
-	*port = switch_port_init(iface_name, true, PORT_TYPE_PHYSICAL, PORT_STATE_LINK_DOWN);
+	*port = switch_port_init(iface_name, true, PORT_TYPE_PHYSICAL, PORT_STATE_NONE);
 
 	vtss_l2sw_port_t* vtss_port = (vtss_l2sw_port_t*) malloc(sizeof(vtss_l2sw_port_t));
 
