@@ -196,7 +196,7 @@ void platform_of1x_remove_entry_hook(of1x_flow_entry_t* entry) {
 	} else {
 		vtss_l2sw_delete_flow_entry(entry);
 	}*/
-	vtss_l2sw_delete_flow_entry(entry)
+	vtss_l2sw_delete_flow_entry(entry);
 }
 
 void platform_of1x_update_stats_hook(of1x_flow_entry_t* entry) {
