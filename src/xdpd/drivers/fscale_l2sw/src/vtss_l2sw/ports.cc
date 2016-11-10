@@ -13,7 +13,7 @@ extern "C" {
 
 }
 
-rofl_result_t vtss_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
+rofl_result_t fscale_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
 	int port_no;
 	vtss_port_status_t status_phy;
 
@@ -44,7 +44,7 @@ rofl_result_t vtss_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
 	return ROFL_FAILURE;
 }
 
-rofl_result_t vtss_l2sw_bring_port_down(vtss_l2sw_port_t* port) {
+rofl_result_t fscale_l2sw_bring_port_down(vtss_l2sw_port_t* port) {
 	int port_no;
 	vtss_port_status_t status_phy;
 
@@ -67,18 +67,26 @@ rofl_result_t vtss_l2sw_bring_port_down(vtss_l2sw_port_t* port) {
 	return ROFL_FAILURE;
 }
 
-rofl_result_t initialize_port(int port_no, switch_port_t** port) {
+rofl_result_t fscale_l2sw_initialize_port(int port_no, switch_port_t** port) {
 	char iface_name[FSCALE_L2SW_INTERFACE_NAME_LEN] = "0";
 
+	//Set port operational state (TRUE if link is up)
 	vtss_port_state_set(NULL, port_no, FALSE);
 
+	//Set the physical internface name used internally by the driver (fswX)
 	snprintf(iface_name, FSCALE_L2SW_INTERFACE_NAME_LEN,
 	FSCALE_L2SW_INTERFACE_BASE_NAME"%d", port_no);
 
-	//Initialize pipeline structure
-	*port = switch_port_init(iface_name, true, PORT_TYPE_PHYSICAL, PORT_STATE_LIVE);
+	//Initialize the switch_port structure
+	*port = switch_port_init(iface_name, true, PORT_TYPE_PHYSICAL, PORT_STATE_LINK_DOWN);
 
 	vtss_l2sw_port_t* vtss_port = (vtss_l2sw_port_t*) malloc(sizeof(vtss_l2sw_port_t));
+
+	if(!vtss_port){
+		switch_port_destroy(port);
+		return NULL;
+	}
+
 	vtss_port->vtss_l2sw_port_num = port_no;
 
 	//Initialize platform specific info
@@ -87,7 +95,7 @@ rofl_result_t initialize_port(int port_no, switch_port_t** port) {
 	return ROFL_SUCCESS;
 }
 
-rofl_result_t destroy_port(switch_port_t* port) {
+rofl_result_t fscale_l2sw_destroy_port(switch_port_t* port) {
 	vtss_l2sw_port_t* vtss_port;
 
 	vtss_port = (vtss_l2sw_port_t*) port->platform_port_state;

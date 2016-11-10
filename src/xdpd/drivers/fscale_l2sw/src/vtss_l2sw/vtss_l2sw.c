@@ -39,9 +39,15 @@ rofl_result_t vtss_l2sw_init() {
 		(void) vtss_trace_conf_set(group, &conf);
 	}
 
+	//Initialize create structure for target (Seville switch)
 	vtss_inst_get(VTSS_TARGET_SEVILLE, &create);
+	//Create target instance
 	vtss_inst_create(&create, &inst);
 
+	//Initialize the userspace driver. It maps the device registers to userspace memory
+	//and sets the appropriate functions to read and write from these registers.
+	//Moreover, it initializes the MDIO devices used to read and write the received
+	//frames from the physical switch ports.
 	board_init();
 
 	//Automatic learning done by switch chip (default enabled)
@@ -52,18 +58,20 @@ rofl_result_t vtss_l2sw_init() {
 	learn_mode.discard = FALSE;
 
 	for (port_no = VTSS_PORT_NO_START; port_no < VTSS_PORT_NO_END; port_no++) {
-		//Check only if the port is in the valid range
+		//Check only if the port is in the valid range. N.B I don't want to add the internal ports
 		if (is_valid_port(port_no)) {
 			port_setup_init(port_no, 0);
 			vtss_mac_table_port_flush(NULL, port_no);
 
-			if (initialize_port(port_no, &port) != ROFL_SUCCESS || !port)
-				continue;
+			if (!is_internal_port(port_no)) {
+			    if (fscale_l2sw_initialize_port(port_no, &port) != ROFL_SUCCESS || !port)
+				       continue;
 
-			//Add to available ports
-			if (physical_switch_add_port(port) != ROFL_SUCCESS) {
-				return ROFL_FAILURE;
-			}
+			    //Add to available ports
+			    if (physical_switch_add_port(port) != ROFL_SUCCESS) {
+				      return ROFL_FAILURE;
+			    }
+		  }
 
 			//Disable forwarding on port
 			vtss_port_state_set(NULL, port_no, FALSE);
@@ -75,7 +83,6 @@ rofl_result_t vtss_l2sw_init() {
 	vtss_l2sw_remove_all_acl();
 
 	return ROFL_SUCCESS;
-
 }
 
 rofl_result_t vtss_l2sw_remove_all_acl(){
@@ -96,7 +103,7 @@ rofl_result_t vtss_l2sw_destroy() {
 	array = physical_switch_get_physical_ports(&max_ports);
 	for (i = 0; i < max_ports; i++) {
 		if (array[i] != NULL) {
-			destroy_port(array[i]);
+			fscale_l2sw_destroy_port(array[i]);
 		}
 	}
 
@@ -104,7 +111,7 @@ rofl_result_t vtss_l2sw_destroy() {
 	array = physical_switch_get_virtual_ports(&max_ports);
 	for (i = 0; i < max_ports; i++) {
 		if (array[i] != NULL) {
-			destroy_port(array[i]);
+			fscale_l2sw_destroy_port(array[i]);
 		}
 	}
 
@@ -298,4 +305,3 @@ rofl_result_t vtss_l2sw_detele_mac_entry_acl(of1x_flow_entry_t* entry) {
 
 	return ROFL_SUCCESS;
 }
-

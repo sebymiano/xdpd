@@ -16,22 +16,22 @@ ROFL_BEGIN_DECLS
 /**
  * @brief Detach all physical ports to switch
  */
-rofl_result_t vtss_l2sw_bring_port_up(vtss_l2sw_port_t* port);
+rofl_result_t fscale_l2sw_bring_port_up(vtss_l2sw_port_t* port);
 
 /**
  * @brief Attach all physical ports to switch
  */
-rofl_result_t vtss_l2sw_bring_port_down(vtss_l2sw_port_t* port);
+rofl_result_t fscale_l2sw_bring_port_down(vtss_l2sw_port_t* port);
 
 /**
  * @brief Destroy a port releasing all memory allocated
  */
-rofl_result_t destroy_port(switch_port_t* port);
+rofl_result_t fscale_l2sw_destroy_port(switch_port_t* port);
 
 /**
  * @brief Destroy a port releasing all memory allocated
  */
-rofl_result_t initialize_port(int port_no, switch_port_t** port);
+rofl_result_t fscale_l2sw_initialize_port(int port_no, switch_port_t** port);
 
 //C++ extern C
 ROFL_END_DECLS

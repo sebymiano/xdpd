@@ -41,12 +41,12 @@ rofl_result_t update_port_status(char * name, bool up) {
 			((vtss_l2sw_port_t*) port->platform_port_state);
 
 	if (up) {
-		if (vtss_l2sw_bring_port_up(vtss_port) != ROFL_SUCCESS) {
+		if (fscale_l2sw_bring_port_up(vtss_port) != ROFL_SUCCESS) {
 			return ROFL_FAILURE;
 		}
 		port->up = true;
 	} else {
-		if (vtss_l2sw_bring_port_down(vtss_port) != ROFL_SUCCESS) {
+		if (fscale_l2sw_bring_port_down(vtss_port) != ROFL_SUCCESS) {
 			return ROFL_FAILURE;
 		}
 		port->up = false;

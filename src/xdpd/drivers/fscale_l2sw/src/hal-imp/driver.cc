@@ -23,7 +23,7 @@ using namespace xdpd::gnu_linux;
 //Driver static info
 #define FSCALE_L2SW_CODE_NAME "fscale_l2sw_driver"
 #define FSCALE_L2SW_VERSION "1.0"
-#define FSCALE_L2SW_DESC  "Example driver. This is an empty non-functional driver that can be used as a blank canvas to port new platforms."
+#define FSCALE_L2SW_DESC  "Freescale T1040 xDPd OpenFlow Driver. It allows to control the phyiscal switch available in the platform using the OpenFlow protocol"
 #define FSCALE_L2SW_USAGE  "" //We don't support extra params
 #define FSCALE_L2SW_EXTRA_PARAMS "" //We don't support extra params
 
@@ -38,40 +38,38 @@ static of_switch_t* sw = NULL;
 hal_result_t hal_driver_init(hal_extension_ops_t* extensions,
 		const char* _extra_params) {
 
-	ROFL_INFO(
-			"["DRIVER_NAME"] calling hal_driver_init() in the Freescale L2Switch xDPd driver\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): in the Freescale L2Switch xDPd driver\n", __FUNCTION__);
 
 	//Init the ROFL-PIPELINE physical switch
 	if (physical_switch_init() != ROFL_SUCCESS)
 		return HAL_FAILURE;
 
-	//Init Vitesse L2Switch, the discovery of the port is done in this method
-	//It also adds the ports to the physical switch by using the physical_switch_add_port() method
+	//Initializes the internal switch, starts the port discovery and adds the ports to the physical switch structure
 	if (vtss_l2sw_init() != ROFL_SUCCESS) {
-		ROFL_ERR("["DRIVER_NAME"] calling vtss_l2sw_init() failed!\n");
-		//FIXME: Clear state and exit
+		ROFL_ERR("["DRIVER_NAME"] %s(): calling vtss_l2sw_init() failed!\n", __FUNCTION__);
+		//TODO: Clear state and exit
 		return HAL_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] call to vtss_l2sw_init() finished with success, L2Switch ports added to the physical switch\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): call to vtss_l2sw_init() finished with success, L2Switch ports added to the physical switch\n", __FUNCTION__);
 
 	//Init buffer pool
 	bufferpool::init();
 
-	ROFL_INFO("["DRIVER_NAME"] buffer pool initialized\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): buffer pool initialized\n", __FUNCTION__);
 
-	ROFL_INFO("["DRIVER_NAME"] launching background task manager from hal_driver_init\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): launching background task manager from hal_driver_init\n", __FUNCTION__);
 
 	//Initialize some form of background task manager
 	launch_background_tasks_manager();
 
-	ROFL_INFO("["DRIVER_NAME"] background task manager launched\n");
-	ROFL_INFO("["DRIVER_NAME"] launching background frame extractor from hal_driver_init\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): background task manager launched\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] %s(): launching background frame extractor from hal_driver_init\n", __FUNCTION__);
 
 	//Initialize a frame extractor for CPU frames
 	launch_background_frame_extractor();
 
-	ROFL_INFO("["DRIVER_NAME"] background frame extractor launched\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): background frame extractor launched\n", __FUNCTION__);
 
 	//We don't support any HAL extension
 	memset(extensions, 0, sizeof(hal_extension_ops_t));
@@ -115,7 +113,7 @@ hal_result_t hal_driver_destroy() {
 
 	//Gently destroy (release) Vitesse L2Switch resources and ports
 	if (vtss_l2sw_destroy() != ROFL_SUCCESS) {
-		ROFL_DEBUG("["DRIVER_NAME"] calling vtss_l2sw_destroy() failed!\n");
+		ROFL_DEBUG("["DRIVER_NAME"] %s(): calling vtss_l2sw_destroy() failed!\n", __FUNCTION__);
 	}
 
 	//If using the pipeline you should call
@@ -124,7 +122,7 @@ hal_result_t hal_driver_destroy() {
 	//Destroy buffer pool
 	bufferpool::destroy();
 
-	ROFL_INFO("["DRIVER_NAME"] calling hal_driver_destroy()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): succeded\n", __FUNCTION__);
 
 	return HAL_SUCCESS;
 }
@@ -165,19 +163,19 @@ hal_result_t hal_driver_create_switch(char* name, uint64_t dpid,
 		of_version_t of_version, unsigned int num_of_tables, int* ma_list) {
 
 	ROFL_INFO(
-			"["DRIVER_NAME"] calling create switch. Name: %s, number of tables: %d\n",
-			name, num_of_tables);
+			"["DRIVER_NAME"] %s(): Name: %s, number of tables: %d\n",
+			__FUNCTION__, name, num_of_tables);
 
 	//We only accept one logical switch in this driver
 	if (sw) {
 		ROFL_ERR(
-				"["DRIVER_NAME"] ERROR: FScale L2Switch driver only supports 1 logical switch! Exiting...\n");
+				"["DRIVER_NAME"] %s(): ERROR: FScale L2Switch driver only supports 1 logical switch! Exiting...\n", __FUNCTION__);
 		exit(EXIT_FAILURE);
 	}
 
 	if (num_of_tables > 1) {
 		ROFL_ERR(
-				"["DRIVER_NAME"] ERROR: FScale L2Switch driver only supports 1 table! Exiting...\n");
+				"["DRIVER_NAME"] %s(): ERROR: FScale L2Switch driver only supports 1 table! Exiting...\n", __FUNCTION__);
 		exit(EXIT_FAILURE);
 	}
 
@@ -207,7 +205,7 @@ hal_result_t hal_driver_create_switch(char* name, uint64_t dpid,
  */
 hal_result_t hal_driver_destroy_switch_by_dpid(const uint64_t dpid) {
 
-	ROFL_INFO("["DRIVER_NAME"] calling destroy_switch_by_dpid()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
 	if (!sw)
 		return HAL_FAILURE;
@@ -224,8 +222,10 @@ hal_result_t hal_driver_destroy_switch_by_dpid(const uint64_t dpid) {
 	if (physical_switch_remove_logical_switch(sw) != ROFL_SUCCESS)
 		return HAL_FAILURE;
 
-	//Set pointer sw pointer so that it can be recreated in the future
+	//Set pointer sw NULL so that it can be recreated in the future
 	sw = NULL;
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): function end\n", __FUNCTION__);
 
 	return HAL_SUCCESS;
 }
@@ -297,7 +297,7 @@ switch_port_snapshot_t* hal_driver_get_port_snapshot_by_num(uint64_t dpid,
 hal_result_t hal_driver_attach_port_to_switch(uint64_t dpid, const char* name,
 		unsigned int* of_port_num) {
 
-	ROFL_INFO("["DRIVER_NAME"] calling attach_port_to_switch()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
 	switch_port_t* port;
 	of_switch_t* lsw;
@@ -321,15 +321,12 @@ hal_result_t hal_driver_attach_port_to_switch(uint64_t dpid, const char* name,
 			assert(0);
 			return HAL_FAILURE;
 		}
-
 	} else {
-
 		if (physical_switch_attach_port_to_logical_switch_at_port_num(port, lsw,
 				*of_port_num) == ROFL_FAILURE) {
 			assert(0);
 			return HAL_FAILURE;
 		}
-
 	}
 
 	return HAL_SUCCESS;
@@ -348,7 +345,7 @@ hal_result_t hal_driver_connect_switches(uint64_t dpid_lsi1,
 		uint64_t dpid_lsi2, unsigned int* port_num2,
 		switch_port_snapshot_t** port2) {
 
-	ROFL_INFO("["DRIVER_NAME"] calling connect_switches()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): functionality NOT SUPPORTED\n", __FUNCTION__);
 
 	return HAL_FAILURE;
 }
@@ -364,7 +361,7 @@ hal_result_t hal_driver_connect_switches(uint64_t dpid_lsi1,
 hal_result_t hal_driver_detach_port_from_switch(uint64_t dpid,
 		const char* name) {
 
-	ROFL_INFO("["DRIVER_NAME"] calling detach_port_from_switch()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
 	of_switch_t* lsw;
 	switch_port_t* port;
@@ -375,14 +372,14 @@ hal_result_t hal_driver_detach_port_from_switch(uint64_t dpid,
 
 	port = physical_switch_get_port_by_name(name);
 
-	//Check if the port does exist and is really attached to the dpid
+	//Check if the port exists and is really attached to the dpid
 	if (!port || !port->attached_sw || port->attached_sw->dpid != dpid)
 		return HAL_FAILURE;
 
 	//Detach it
 	if (physical_switch_detach_port_from_logical_switch(port, lsw)
 			!= ROFL_SUCCESS) {
-		ROFL_ERR(DRIVER_NAME" Error detaching port %s.\n", port->name);
+		ROFL_ERR("["DRIVER_NAME"] %s(): Error detaching port %s.\n", __FUNCTION__, port->name);
 		assert(0);
 		return HAL_FAILURE;
 	}
@@ -401,8 +398,7 @@ hal_result_t hal_driver_detach_port_from_switch(uint64_t dpid,
 hal_result_t hal_driver_detach_port_from_switch_at_port_num(uint64_t dpid,
 		const unsigned int of_port_num) {
 
-	ROFL_INFO(
-			"["DRIVER_NAME"] calling detach_port_from_switch_at_port_num()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
 	of_switch_t* lsw;
 
@@ -411,7 +407,7 @@ hal_result_t hal_driver_detach_port_from_switch_at_port_num(uint64_t dpid,
 	if (!lsw)
 		return HAL_FAILURE;
 
-	//Check if the port does exist.
+	//Check if the port exists.
 	if (!of_port_num || of_port_num >= LOGICAL_SWITCH_MAX_LOG_PORTS
 			|| !lsw->logical_ports[of_port_num].port)
 		return HAL_FAILURE;
@@ -435,7 +431,7 @@ hal_result_t hal_driver_detach_port_from_switch_at_port_num(uint64_t dpid,
  */
 hal_result_t hal_driver_bring_port_up(const char* name) {
 
-	ROFL_INFO("["DRIVER_NAME"] calling bring_port_up()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
 	switch_port_t* port;
 
@@ -445,8 +441,8 @@ hal_result_t hal_driver_bring_port_up(const char* name) {
 	if (!port || !port->platform_port_state)
 		return HAL_FAILURE;
 
-	if (vtss_l2sw_bring_port_up((vtss_l2sw_port_t*) port->platform_port_state) != ROFL_SUCCESS) {
-		ROFL_ERR(DRIVER_NAME" Error bring up port %s.\n", port->name);
+	if (fscale_l2sw_bring_port_up((vtss_l2sw_port_t*) port->platform_port_state) != ROFL_SUCCESS) {
+		ROFL_ERR("["DRIVER_NAME"] %s(): Error bring up port %s.\n", __FUNCTION__, port->name);
 		assert(0);
 		return HAL_FAILURE;
 	}
@@ -465,7 +461,7 @@ hal_result_t hal_driver_bring_port_up(const char* name) {
  */
 hal_result_t hal_driver_bring_port_down(const char* name) {
 
-	ROFL_INFO("["DRIVER_NAME"] calling bring_port_down()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
 	switch_port_t* port;
 
@@ -475,9 +471,9 @@ hal_result_t hal_driver_bring_port_down(const char* name) {
 	if (!port || !port->platform_port_state)
 		return HAL_FAILURE;
 
-	if (vtss_l2sw_bring_port_down((vtss_l2sw_port_t*) port->platform_port_state)
+	if (fscale_l2sw_bring_port_down((vtss_l2sw_port_t*) port->platform_port_state)
 			!= ROFL_SUCCESS) {
-		ROFL_ERR(DRIVER_NAME" Error bring up port %s.\n", port->name);
+		ROFL_ERR("["DRIVER_NAME"] %s(): Error bring down port %s.\n", __FUNCTION__, port->name);
 		assert(0);
 		return HAL_FAILURE;
 	}
@@ -498,7 +494,7 @@ hal_result_t hal_driver_bring_port_down(const char* name) {
 hal_result_t hal_driver_bring_port_up_by_num(uint64_t dpid,
 		unsigned int port_num) {
 
-	ROFL_INFO("["DRIVER_NAME"] calling bring_port_up_by_num()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
 	of_switch_t* lsw;
 
@@ -515,11 +511,10 @@ hal_result_t hal_driver_bring_port_up_by_num(uint64_t dpid,
 
 	//Call I/O manager to bring it up
 
-	if (vtss_l2sw_bring_port_up(
+	if (fscale_l2sw_bring_port_up(
 			(vtss_l2sw_port_t*) lsw->logical_ports[port_num].port->platform_port_state)
 			!= ROFL_SUCCESS) {
-		ROFL_ERR(DRIVER_NAME" Error bring up port %s.\n",
-				lsw->logical_ports[port_num].port->name);
+		ROFL_ERR("["DRIVER_NAME"] %s(): Error bring up port %s.\n", __FUNCTION__, lsw->logical_ports[port_num].port->name);
 		assert(0);
 		return HAL_FAILURE;
 	}
@@ -538,7 +533,7 @@ hal_result_t hal_driver_bring_port_up_by_num(uint64_t dpid,
 hal_result_t hal_driver_bring_port_down_by_num(uint64_t dpid,
 		unsigned int port_num) {
 
-	ROFL_INFO("["DRIVER_NAME"] calling bring_port_down_by_num()\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
 	of_switch_t* lsw;
 
@@ -554,11 +549,10 @@ hal_result_t hal_driver_bring_port_down_by_num(uint64_t dpid,
 		return HAL_FAILURE;
 
 	//Call I/O manager to bring it down
-	if (vtss_l2sw_bring_port_down(
+	if (fscale_l2sw_bring_port_down(
 			(vtss_l2sw_port_t*) lsw->logical_ports[port_num].port->platform_port_state)
 			!= ROFL_SUCCESS) {
-		ROFL_ERR(DRIVER_NAME" Error bring up port %s.\n",
-				lsw->logical_ports[port_num].port->name);
+		ROFL_ERR("["DRIVER_NAME"] %s(): Error bring down port %s.\n", __FUNCTION__, lsw->logical_ports[port_num].port->name);
 		assert(0);
 		return HAL_FAILURE;
 	}
