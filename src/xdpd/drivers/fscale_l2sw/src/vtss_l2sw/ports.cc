@@ -7,6 +7,7 @@
 #include <vtss_api/vtss_api.h>
 #include <vtss_api/vtss_phy_api.h>
 #include <vtss_api/vtss_l2_api.h>
+#include "../config.h"
 extern "C" {
 
 #include <fsl_utils/fsl_utils.h>
