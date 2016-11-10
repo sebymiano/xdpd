@@ -38,8 +38,7 @@ rofl_result_t update_port_link_status(char * name, bool up) {
 	if (!port)
 		return ROFL_SUCCESS; //Port deleted
 
-	vtss_l2sw_port_t* vtss_port =
-			((vtss_l2sw_port_t*) port->platform_port_state);
+	//vtss_l2sw_port_t* vtss_port = ((vtss_l2sw_port_t*) port->platform_port_state);
 
 	if (up) {
 		/*if (fscale_l2sw_bring_port_up(vtss_port) != ROFL_SUCCESS) {
@@ -47,14 +46,14 @@ rofl_result_t update_port_link_status(char * name, bool up) {
 		}*/
 		//port->up = true;
 		port->state = PORT_STATE_LIVE;
-		ROFL_INFO("["DRIVER_NAME"] %s(): link up\n", __FUNCTION__, port_no);
+		ROFL_INFO("["DRIVER_NAME"] %s(): link up\n", __FUNCTION__);
 	} else {
 		/*if (fscale_l2sw_bring_port_down(vtss_port) != ROFL_SUCCESS) {
 			return ROFL_FAILURE;
 		}*/
 		//port->up = false;
 		port->state = PORT_STATE_LINK_DOWN;
-		ROFL_INFO("["DRIVER_NAME"] %s(): link down\n", __FUNCTION__, port_no);
+		ROFL_INFO("["DRIVER_NAME"] %s(): link down\n", __FUNCTION__);
 	}
 
 	//Notify the change of state to the CMM
