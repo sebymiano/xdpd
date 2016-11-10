@@ -37,7 +37,7 @@ rofl_result_t fscale_l2sw_bring_port_up(vtss_l2sw_port_t* port) {
 
 		//Enable forwarding on the specified port (bring up)
 		vtss_port_state_set(NULL, port_no, TRUE);
-		ROFL_ERR("["DRIVER_NAME"] %s(): port %d forwarding enabled\n", __FUNCTION__, port_no);
+		ROFL_INFO("["DRIVER_NAME"] %s(): port %d forwarding enabled\n", __FUNCTION__, port_no);
 
 		return ROFL_SUCCESS;
 	}
@@ -60,7 +60,7 @@ rofl_result_t fscale_l2sw_bring_port_down(vtss_l2sw_port_t* port) {
 
 		//Disable forwarding on the specified port (bring down)
 		vtss_port_state_set(NULL, port_no, FALSE);
-		ROFL_ERR("["DRIVER_NAME"] %s(): port %d forwarding disabled\n", __FUNCTION__, port_no);
+		ROFL_INFO("["DRIVER_NAME"] %s(): port %d forwarding disabled\n", __FUNCTION__, port_no);
 
 		return ROFL_SUCCESS;
 	}
