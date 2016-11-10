@@ -84,7 +84,7 @@ rofl_result_t fscale_l2sw_initialize_port(int port_no, switch_port_t** port) {
 
 	if(!vtss_port){
 		switch_port_destroy(*port);
-		return NULL;
+		return ROFL_FAILURE;
 	}
 
 	vtss_port->vtss_l2sw_port_num = port_no;
