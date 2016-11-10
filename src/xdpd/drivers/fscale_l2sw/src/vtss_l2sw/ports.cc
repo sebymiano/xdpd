@@ -83,7 +83,7 @@ rofl_result_t fscale_l2sw_initialize_port(int port_no, switch_port_t** port) {
 	vtss_l2sw_port_t* vtss_port = (vtss_l2sw_port_t*) malloc(sizeof(vtss_l2sw_port_t));
 
 	if(!vtss_port){
-		switch_port_destroy(port);
+		switch_port_destroy(*port);
 		return NULL;
 	}
 
