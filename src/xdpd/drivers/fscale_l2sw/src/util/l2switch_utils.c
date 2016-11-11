@@ -79,7 +79,6 @@ bool is_valid_entry(of1x_flow_entry_t * entry) {
 		ROFL_INFO("["DRIVER_NAME"] %s(): there are matches different from l2\n", __FUNCTION__);
 		return false;
 	}
-	 entry->
 
 	if (!actions_are_only_l2(entry->inst_grp.instructions[OF1X_IT_APPLY_ACTIONS].apply_actions)) {
 		ROFL_INFO("["DRIVER_NAME"] %s(): there are some actions not compatible with this driver\n", __FUNCTION__);
