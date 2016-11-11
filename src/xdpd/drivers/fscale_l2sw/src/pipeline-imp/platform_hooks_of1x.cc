@@ -140,17 +140,6 @@ void plaftorm_of1x_add_entry_hook(of1x_flow_entry_t* new_entry) {
 	}
 
 	vtss_l2sw_add_flow_entry(new_entry);
-	/*if (is_entry_for_mac_table(new_entry)) {
-		vtss_l2sw_add_flow_entry(new_entry);
-		//vtss_l2sw_add_mac_entry_acl(new_entry);
-	}
-
-	if (is_entry_for_mac_table(new_entry)) {
-		vtss_l2sw_add_mac_entry(new_entry);
-		//vtss_l2sw_add_mac_entry_acl(new_entry);
-	} else {
-		vtss_l2sw_add_flow_entry(new_entry);
-	}*/
 
 }
 
@@ -160,21 +149,6 @@ void platform_of1x_modify_entry_hook(of1x_flow_entry_t* old_entry, of1x_flow_ent
 		ROFL_ERR("["DRIVER_NAME"] %s(): not l2 entry\n", __FUNCTION__);
 		return;
 	}
-
-	//FIXME: There is a way to modify the entry directly
-	/*if (is_entry_for_mac_table(old_entry)) {
-		vtss_l2sw_detele_mac_entry(old_entry);
-		//vtss_l2sw_detele_mac_entry_acl(old_entry);
-	} else {
-		vtss_l2sw_delete_flow_entry(old_entry);
-	}
-
-	if (is_entry_for_mac_table(mod)) {
-		vtss_l2sw_add_mac_entry(mod);
-		//vtss_l2sw_add_mac_entry_acl(mod);
-	} else {
-		vtss_l2sw_add_flow_entry(mod);
-	}*/
 
 	vtss_l2sw_delete_flow_entry(old_entry);
 	vtss_l2sw_add_flow_entry(mod);
@@ -190,12 +164,6 @@ void platform_of1x_remove_entry_hook(of1x_flow_entry_t* entry) {
 		return;
 	}
 
-	/*if (is_entry_for_mac_table(entry)) {
-		vtss_l2sw_detele_mac_entry(entry);
-		//vtss_l2sw_detele_mac_entry_acl(entry);
-	} else {
-		vtss_l2sw_delete_flow_entry(entry);
-	}*/
 	vtss_l2sw_delete_flow_entry(entry);
 }
 

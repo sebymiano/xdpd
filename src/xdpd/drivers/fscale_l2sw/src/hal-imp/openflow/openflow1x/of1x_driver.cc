@@ -353,14 +353,14 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_add(uint64_t dpid, uint8_t tabl
 	of1x_dump_flow_entry(*flow_entry, false);
 #endif
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking if entry is only a l2 entry\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking if the entry is valid\n", __FUNCTION__);
 
-	if (!is_l2_entry(*flow_entry)) {
-		ROFL_INFO("["DRIVER_NAME"] hal_driver_of1x_process_flow_mod_add: This driver accepts only l2 entries\n");
+	if (!is_valid_entry(*flow_entry)) {
+		ROFL_INFO("["DRIVER_NAME"] calling %s(): The entry has matches or actions unsupported\n", __FUNCTION__);
 		return HAL_FM_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] calling %s(): entry is only l2, adding entry into LSI table...\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): entry is valid, adding entry into LSI table...\n", __FUNCTION__);
 
 	if ((result = of1x_add_flow_entry_table(&lsw->pipeline, table_id, flow_entry, check_overlap, reset_counts))
 			!= ROFL_OF1X_FM_SUCCESS)
