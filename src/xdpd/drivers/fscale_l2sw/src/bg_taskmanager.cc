@@ -69,16 +69,18 @@ void check_port_status() {
 
 			port = physical_switch_get_port_by_name(iface_name);
 
-			if ( !((port->state & PORT_STATE_LINK_DOWN) > 0) && (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
-				//Port changed to down state
-				ROFL_INFO("["DRIVER_NAME"] %s(): Port changed to down state, updating state...\n", __FUNCTION__);
-				update_port_link_status(iface_name, FALSE);
-				ROFL_INFO("["DRIVER_NAME"] %s(): Port state updated", __FUNCTION__);
-			} else if (((port->state & PORT_STATE_LINK_DOWN) > 0) && (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
-				ROFL_INFO("["DRIVER_NAME"] %s(): Port changed to up state, updating state...\n", __FUNCTION__);
-				//Port changed to up state
-				update_port_link_status(iface_name, TRUE);
-				ROFL_INFO("["DRIVER_NAME"] %s(): Port state updated\n", __FUNCTION__);
+			if(port->is_attached_to_sw) {
+				if ( !((port->state & PORT_STATE_LINK_DOWN) > 0) && (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
+					//Port changed to down state
+					ROFL_INFO("["DRIVER_NAME"] %s(): Port changed to down state, updating state...\n", __FUNCTION__);
+					update_port_link_status(iface_name, FALSE);
+					ROFL_INFO("["DRIVER_NAME"] %s(): Port state updated", __FUNCTION__);
+				} else if (((port->state & PORT_STATE_LINK_DOWN) > 0) && (status_phy.link == TRUE && status_phy.link_down == FALSE)) {
+					ROFL_INFO("["DRIVER_NAME"] %s(): Port changed to up state, updating state...\n", __FUNCTION__);
+					//Port changed to up state
+					update_port_link_status(iface_name, TRUE);
+					ROFL_INFO("["DRIVER_NAME"] %s(): Port state updated\n", __FUNCTION__);
+				}
 			}
 		}
 	}

@@ -74,7 +74,7 @@ rofl_result_t fscale_l2sw_initialize_port(int port_no, switch_port_t** port) {
 	//Set port operational state (TRUE if link is up)
 	vtss_port_state_set(NULL, port_no, FALSE);
 
-	//Set the physical internface name used internally by the driver (fswX)
+	//Set the physical interface name used internally by the driver (fswX)
 	snprintf(iface_name, FSCALE_L2SW_INTERFACE_NAME_LEN,
 	FSCALE_L2SW_INTERFACE_BASE_NAME"%d", port_no);
 

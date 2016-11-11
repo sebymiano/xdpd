@@ -43,4 +43,9 @@ test-driver
 src/xdpd/management/pm_timestamp.h
 src/xdpd/management/plugins/pm_timestamp.h
 
+libs/vtss/
+libs/vtss_api/
+libs/COPYING
+libs/fsl_utils/
+
 !.gitignore
