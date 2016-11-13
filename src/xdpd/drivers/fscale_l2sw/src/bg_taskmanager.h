@@ -24,6 +24,12 @@ ROFL_BEGIN_DECLS
  * launches the main thread
  */
 
+void update_misc_stats();
+
+void check_port_status();
+
+int process_timeouts();
+
 rofl_result_t launch_background_tasks_manager(void);
 
 rofl_result_t stop_background_tasks_manager(void);

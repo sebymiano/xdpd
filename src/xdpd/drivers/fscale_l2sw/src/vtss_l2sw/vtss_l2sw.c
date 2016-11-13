@@ -85,15 +85,6 @@ rofl_result_t vtss_l2sw_init() {
 	return ROFL_SUCCESS;
 }
 
-rofl_result_t vtss_l2sw_remove_all_acl(){
-	uint32_t i;
-
-	for(i = 0; i < FSCALE_L2SW_MAX_ACL_ID; i++){
-		vtss_ace_del(NULL, i);
-	}
-
-	return ROFL_SUCCESS;
-}
 
 rofl_result_t vtss_l2sw_destroy() {
 
@@ -120,25 +111,35 @@ rofl_result_t vtss_l2sw_destroy() {
 	return ROFL_SUCCESS;
 }
 
+rofl_result_t vtss_l2sw_remove_all_acl(){
+	uint32_t i;
+
+	for(i = 0; i < FSCALE_L2SW_MAX_ACL_ID; i++){
+		vtss_ace_del(NULL, i);
+	}
+
+	return ROFL_SUCCESS;
+}
+
 rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 	vtss_ace_t acl_entry;
 	vtss_l2sw_flow_entry_t* vtss_entry;
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: calling  generate_acl_entry_matches...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): calling  generate_acl_entry_matches...\n", __FUNCTION__);
 
 	if (vtss_l2sw_generate_acl_entry_matches(&acl_entry, entry) != VTSS_RC_OK) {
-		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_add_flow_entry failed");
+		ROFL_ERR("%s(): vtss_l2sw_add_flow_entry failed");
 		return ROFL_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: calling  generate_acl_entry_actions...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): calling  generate_acl_entry_actions...\n", __FUNCTION__);
 
 	if (vtss_l2sw_generate_acl_entry_actions(&acl_entry, entry) != VTSS_RC_OK) {
-		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_generate_acl_entry_actions failed\n");
+		ROFL_ERR("%s(): vtss_l2sw_generate_acl_entry_actions failed\n", __FUNCTION__);
 		return ROFL_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: adding acl...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): adding acl...\n", __FUNCTION__);
 
 	acl_entry.id = aclId;
 
@@ -153,14 +154,14 @@ rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 
 	/* Add ACL entry */
 	if (vtss_ace_add(NULL, VTSS_ACE_ID_LAST, &acl_entry) != VTSS_RC_OK) {
-		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_ace_add failed, unable to add the acl\n");
+		ROFL_ERR("["DRIVER_NAME"] %s(): vtss_ace_add failed, unable to add the acl\n", __FUNCTION__);
 		vtss_l2sw_destroy_vtss_flow_entry(vtss_entry);
 		return ROFL_FAILURE;
 	}
 
 	aclId++;
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: acl added...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): acl added...\n", __FUNCTION__);
 
 	return ROFL_SUCCESS;
 }
@@ -173,17 +174,17 @@ rofl_result_t vtss_l2sw_delete_flow_entry(of1x_flow_entry_t* entry) {
 	if (!hw_entry || hw_entry->acl_id == ACL_INVALID_ID)
 		return ROFL_FAILURE;
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: removing acl...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): removing acl...\n", __FUNCTION__);
 
 	if (vtss_ace_del(NULL, hw_entry->acl_id) != VTSS_RC_OK) {
-		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_ace_del failed, unable to remove the acl\n");
+		ROFL_ERR("["DRIVER_NAME"] %s(): vtss_ace_del failed, unable to remove the acl\n", __FUNCTION__);
 		return ROFL_FAILURE;
 	}
 
 	vtss_l2sw_destroy_vtss_flow_entry(hw_entry);
 
 	//FIXME: Here I should also release the id of this entry
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: acl removed...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): acl removed...\n", __FUNCTION__);
 
 	return ROFL_SUCCESS;
 }
@@ -192,14 +193,14 @@ rofl_result_t vtss_l2sw_add_mac_entry(of1x_flow_entry_t* entry) {
 	vtss_mac_table_entry_t mac_entry;
 	vtss_l2sw_flow_entry_t* vtss_entry;
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: calling vtss_l2sw_add_mac_entry...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): calling vtss_l2sw_add_mac_entry...\n", __FUNCTION__);
 
 	if (vtss_l2sw_generate_mac_entry(&mac_entry, entry) != VTSS_RC_OK) {
-		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_add_mac_entry failed");
+		ROFL_ERR("%s(): vtss_l2sw_add_mac_entry failed", __FUNCTION__);
 		return ROFL_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: adding mac entry...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): adding mac entry...\n", __FUNCTION__);
 
 	vtss_entry = vtss_l2sw_init_vtss_flow_entry();
 	if (!vtss_entry)
@@ -211,12 +212,12 @@ rofl_result_t vtss_l2sw_add_mac_entry(of1x_flow_entry_t* entry) {
 
 	// Add MAC Table entry
 	if (vtss_mac_table_add(NULL, &mac_entry) != VTSS_RC_OK) {
-		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_mac_table_add failed, unable to add the mac entry\n");
+		ROFL_ERR("["DRIVER_NAME"] %s(): vtss_mac_table_add failed, unable to add the mac entry\n", __FUNCTION__);
 		vtss_l2sw_destroy_vtss_flow_entry(vtss_entry);
 		return ROFL_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: mac entry added...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): mac entry added...\n", __FUNCTION__);
 
 	return ROFL_SUCCESS;
 }
@@ -229,16 +230,16 @@ rofl_result_t vtss_l2sw_detele_mac_entry(of1x_flow_entry_t* entry) {
 	if (!hw_entry || hw_entry->type != VTSS_ENTRY_TYPE_MAC)
 		return ROFL_FAILURE;
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: removing mac entry...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): removing mac entry...\n", __FUNCTION__);
 
 	if (vtss_mac_table_del(NULL, &hw_entry->mac_entry) != VTSS_RC_OK) {
-		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_l2sw_detele_mac_entry failed, unable to remove the acl\n");
+		ROFL_ERR("["DRIVER_NAME"] %s(): vtss_l2sw_detele_mac_entry failed, unable to remove the acl\n", __FUNCTION__);
 		return ROFL_FAILURE;
 	}
 
 	vtss_l2sw_destroy_vtss_flow_entry(hw_entry);
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: mac entry removed...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): mac entry removed...\n", __FUNCTION__);
 
 	return ROFL_SUCCESS;
 }
@@ -247,14 +248,14 @@ rofl_result_t vtss_l2sw_add_mac_entry_acl(of1x_flow_entry_t* entry) {
 	vtss_ace_t mac_acl_entry;
 	vtss_l2sw_flow_entry_t* vtss_entry;
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: calling vtss_l2sw_add_mac_entry_acl...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): calling vtss_l2sw_add_mac_entry_acl...\n", __FUNCTION__);
 
 	if (vtss_l2sw_generate_mac_entry_acl(&mac_acl_entry, entry) != VTSS_RC_OK) {
-		ROFL_ERR("vtss_l2sw.c: vtss_l2sw_add_mac_entry_acl failed");
+		ROFL_ERR("%s(): vtss_l2sw_add_mac_entry_acl failed", __FUNCTION__);
 		return ROFL_FAILURE;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: adding acl mac entry...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): adding acl mac entry...\n", __FUNCTION__);
 
 	mac_acl_entry.id = aclId;
 
@@ -269,20 +270,20 @@ rofl_result_t vtss_l2sw_add_mac_entry_acl(of1x_flow_entry_t* entry) {
 
 	/* Add ACL entry */
 	if (vtss_ace_add(NULL, VTSS_ACE_ID_LAST, &mac_acl_entry) != VTSS_RC_OK) {
-		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw.c: vtss_l2sw_add_mac_entry_acl failed, unable to add the mac entry acl\n");
+		ROFL_ERR("["DRIVER_NAME"] %s(): vtss_l2sw_add_mac_entry_acl failed, unable to add the mac entry acl\n", __FUNCTION__);
 		vtss_l2sw_destroy_vtss_flow_entry(vtss_entry);
 		return ROFL_FAILURE;
 	}
 
 	aclId++;
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: mac entry acl added...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): mac entry acl added...\n", __FUNCTION__);
 
 	return ROFL_SUCCESS;
 }
 
 rofl_result_t vtss_l2sw_detele_mac_entry_acl(of1x_flow_entry_t* entry) {
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: calling vtss_l2sw_detele_mac_entry_acl...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): calling vtss_l2sw_detele_mac_entry_acl...\n", __FUNCTION__);
 	//Recover the position
 	vtss_l2sw_flow_entry_t* hw_entry = (vtss_l2sw_flow_entry_t*) entry->platform_state;
 
@@ -290,18 +291,18 @@ rofl_result_t vtss_l2sw_detele_mac_entry_acl(of1x_flow_entry_t* entry) {
 	if (!hw_entry || hw_entry->acl_id == ACL_INVALID_ID)
 		return ROFL_FAILURE;
 
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: removing mac entry acl...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): removing mac entry acl...\n", __FUNCTION__);
 
 	if (vtss_ace_del(NULL, hw_entry->acl_id) != VTSS_RC_OK) {
 		ROFL_ERR(
-				"["DRIVER_NAME"] vtss_l2sw.c: vtss_l2sw_detele_mac_entry_acl failed, unable to remove the mac entry acl\n");
+				"["DRIVER_NAME"] %s(): vtss_l2sw_detele_mac_entry_acl failed, unable to remove the mac entry acl\n", __FUNCTION__);
 		return ROFL_FAILURE;
 	}
 
 	vtss_l2sw_destroy_vtss_flow_entry(hw_entry);
 
 	//FIXME: Here I should also release the id of this entry
-	ROFL_INFO("["DRIVER_NAME"] vtss_l2sw.c: mac entry acl removed...\n");
+	ROFL_INFO("["DRIVER_NAME"] %s(): mac entry acl removed...\n", __FUNCTION__);
 
 	return ROFL_SUCCESS;
 }
