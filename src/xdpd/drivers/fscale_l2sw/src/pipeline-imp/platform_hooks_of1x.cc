@@ -134,8 +134,10 @@ void platform_of1x_notify_flow_removed(const of1x_switch_t* sw, of1x_flow_remove
 void plaftorm_of1x_add_entry_hook(of1x_flow_entry_t* new_entry) {
 	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking if the entry is valid for the hardware offload\n", __FUNCTION__);
+
 	if (!is_valid_entry(new_entry)) {
-		ROFL_ERR("["DRIVER_NAME"] %s(): not a valid entry\n", __FUNCTION__);
+		ROFL_ERR("["DRIVER_NAME"] %s(): not a valid hardware entry\n", __FUNCTION__);
 		return;
 	}
 
@@ -144,9 +146,12 @@ void plaftorm_of1x_add_entry_hook(of1x_flow_entry_t* new_entry) {
 }
 
 void platform_of1x_modify_entry_hook(of1x_flow_entry_t* old_entry, of1x_flow_entry_t* mod, int reset_count) {
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
+
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking if the entry is valid for the hardware offload\n", __FUNCTION__);
 
 	if (!is_valid_entry(mod)) {
-		ROFL_ERR("["DRIVER_NAME"] %s(): not l2 entry\n", __FUNCTION__);
+		ROFL_ERR("["DRIVER_NAME"] %s(): not a valid hardware entry\n", __FUNCTION__);
 		return;
 	}
 
@@ -159,8 +164,10 @@ void platform_of1x_remove_entry_hook(of1x_flow_entry_t* entry) {
 
 	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
 
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking if the entry is valid for the hardware offload before remove it\n", __FUNCTION__);
+
 	if (!is_valid_entry(entry)) {
-		ROFL_ERR("["DRIVER_NAME"] %s(): not l2 entry\n", __FUNCTION__);
+		ROFL_ERR("["DRIVER_NAME"] %s(): not a valid hardware entry\n", __FUNCTION__);
 		return;
 	}
 

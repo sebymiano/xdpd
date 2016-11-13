@@ -69,7 +69,7 @@ bool is_valid_entry(of1x_flow_entry_t * entry) {
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_ETH_TYPE);
 	bitmap128_unset(&no_l2_bitmap, OF1X_MATCH_VLAN_VID);
 
-	ROFL_INFO("["DRIVER_NAME"] %s(): set bitmap for no l2 matches\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] %s(): checking if the entry is valid for the offload\n", __FUNCTION__);
 
 	and_matches_bitmap = bitmap128_and(&entry->matches.match_bm, &no_l2_bitmap);
 	and_wildcard_bitmap = bitmap128_and(&entry->matches.wildcard_bm, &no_l2_bitmap);
@@ -85,7 +85,7 @@ bool is_valid_entry(of1x_flow_entry_t * entry) {
 		return false;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] %s(): fine :) all actions and entries are l2\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] %s(): Great!! All actions and entries are l2. Let's offload them :)\n", __FUNCTION__);
 
 	return true;
 }
