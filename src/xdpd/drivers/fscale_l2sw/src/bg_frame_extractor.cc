@@ -50,6 +50,64 @@ extern "C" {
 static pthread_t bg_thread;
 static bool bg_continue_execution = true;
 
+/**
+ * @name x86_background_tasks_thread
+ * @brief contents the infinite loop checking for ports and timeouts
+ */
+void* bg_frame_extractor_routine(void* param) {
+	u32 xtr_grp_cfg_old, inj_grp_cfg_old;
+
+	l2sw_reg_read(0, XTR_GRP_CFG_REG, &xtr_grp_cfg_old);
+	l2sw_reg_read(0, INJ_GRP_CFG_REG, &inj_grp_cfg_old);
+
+	l2sw_reg_write(0, XTR_GRP_CFG_REG, xtr_grp_cfg_old & ~(CPU_FRAME_BYTE_SWAP | CPU_FRAME_EOF_WORD_POS_AFTER));
+	l2sw_reg_write(0, INJ_GRP_CFG_REG, inj_grp_cfg_old & ~(CPU_FRAME_BYTE_SWAP));
+
+	while (bg_continue_execution) {
+		sleep(1);
+
+		ROFL_INFO("["DRIVER_NAME"] %s(): reading from CPU queues...\n", __FUNCTION__);
+		read_frame_from_cpu_queues(MAX_FRAMES_RECV);
+	}
+
+	//Printing some information
+	ROFL_INFO("["DRIVER_NAME"]  %s(): Finishing bg_frame_extractor execution\n", __FUNCTION__);
+
+	/* restore CPU injection/extraction configuration */
+	l2sw_reg_write(0, XTR_GRP_CFG_REG, xtr_grp_cfg_old);
+	l2sw_reg_write(0, INJ_GRP_CFG_REG, inj_grp_cfg_old);
+
+	//Exit
+	pthread_exit(NULL);
+}
+
+/**
+ * launches the main thread
+ */
+rofl_result_t launch_background_frame_extractor() {
+	//Set flag
+	bg_continue_execution = true;
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): launching background frame extractor\n", __FUNCTION__);
+
+	if (pthread_create(&bg_thread, NULL, bg_frame_extractor_routine, NULL) < 0) {
+		ROFL_ERR("<%s:%d> pthread_create failed\n", __func__, __LINE__);
+		return ROFL_FAILURE;
+	}
+	return ROFL_SUCCESS;
+}
+
+rofl_result_t stop_background_frame_extractor() {
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): stopping background frame extractor\n", __FUNCTION__);
+
+	bg_continue_execution = false;
+	pthread_join(bg_thread, NULL);
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): background frame extractor stopped\n", __FUNCTION__);
+	return ROFL_SUCCESS;
+}
+
 void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queue_t queue, u8 *frame) {
 	packet_matches_t matches;
 	char iface_name[FSCALE_L2SW_INTERFACE_NAME_LEN] = "0";
@@ -84,8 +142,8 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 		pack->pktin_send_len = ((of1x_switch_t*) sw)->pipeline.miss_send_len;
 
 		xdpd::gnu_linux::storeid storage_id = storage->store_packet(pkt);
-		ROFL_DEBUG("["DRIVER_NAME"] PACKET_IN storage ID %d for datapacket pkt %d dpid %d  \n", storage_id, pkt,
-				sw->dpid);
+		ROFL_DEBUG("["DRIVER_NAME"] %s(): PACKET_IN storage ID %d for datapacket pkt %d dpid %d  \n",
+				__FUNCTION__, storage_id, pkt, sw->dpid);
 
 		//Fill matches
 		fill_packet_matches(pkt, &matches);
@@ -96,54 +154,34 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 				pack->get_buffer_length(), &matches);
 
 		ROFL_DEBUG(
-				"["DRIVER_NAME"] bg_frame_extractor.cc sw->dpid = %u, pack->pktin_table_id = %u, reason = %u \
+				"["DRIVER_NAME"] %s(): sw->dpid = %u, pack->pktin_table_id = %u, reason = %u \
 						 port_in = %u, storage_id = %u, pktin_send_len = %u, buffer_length = %u\n",
-				sw->dpid, pack->pktin_table_id, pack->pktin_reason, pack->clas_state.port_in, storage_id,
+				__FUNCTION__, sw->dpid, pack->pktin_table_id, pack->pktin_reason, pack->clas_state.port_in, storage_id,
 				pack->pktin_send_len, pack->get_buffer_length());
 
 		if (HAL_FAILURE == r) {
-			ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in unsuccessful \n");
+			ROFL_DEBUG("["DRIVER_NAME"] %s(): cmm packet_in unsuccessful \n", __FUNCTION__);
 
 			//TODO: I should remove also the packet from the storage (is not possible)
 			xdpd::gnu_linux::bufferpool::release_buffer(pkt);
 		}
 		if (HAL_SUCCESS == r)
-			ROFL_DEBUG("["DRIVER_NAME"] bg_frame_extractor.cc cmm packet_in successful \n");
+			ROFL_DEBUG("["DRIVER_NAME"] %s(): cmm packet_in successful \n", __FUNCTION__);
 	} else {
 		if (!port) {
-			ROFL_DEBUG("["DRIVER_NAME"] port doesn't exist");
+			ROFL_DEBUG("["DRIVER_NAME"] %s(): port doesn't exist", __FUNCTION__);
 			return;
 		}
 
 		if (!port->is_attached_to_sw) {
-			ROFL_DEBUG("["DRIVER_NAME"] port %d is not attached to a logical switch\n", header->port_no);
+			ROFL_DEBUG("["DRIVER_NAME"] %s(): port %d is not attached to a logical switch\n", __FUNCTION__, header->port_no);
 		}
 		if (!port->of_generate_packet_in) {
-			ROFL_DEBUG("["DRIVER_NAME"] port %d cannot generate pkt_in \n", header->port_no);
+			ROFL_DEBUG("["DRIVER_NAME"] %s(): port %d cannot generate pkt_in \n", __FUNCTION__, header->port_no);
 		}
 	}
 
 }
-
-/* Dump frame */
-/*static void dump_frame(vtss_packet_rx_header_t *header, vtss_packet_rx_queue_t queue, u8 *frame) {
- char buf[100], *p;
- u32 i;
-
- ROFL_INFO("["DRIVER_NAME"] Received frame on port: %u, queue: %u, length: %u\n", header->port_no, queue,
- header->length);
- for (i = 0, p = &buf[0]; i < header->length; i++) {
- if ((i % 16) == 0) {
- p = &buf[0];
- p += sprintf(p, "%04x: ", i);
- }
-
- p += sprintf(p, "%02x%c", frame[i], ((i + 9) % 16) == 0 ? '-' : ' ');
- if (((i + 1) % 16) == 0 || (i + 1) == header->length)
- ROFL_INFO("%s\n", buf);
- }
- ROFL_INFO("\n");
- }*/
 
 /*
  * Receive at most <count> frames
@@ -165,8 +203,8 @@ void read_frame_from_cpu_queues(u32 count) {
 
 			frames++;
 			nothing_received = false;
-			ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: Received frame on port: %u, queue: %u, length: %u\n",
-					header.port_no, queue, header.length);
+			ROFL_INFO("["DRIVER_NAME"] %s(): Received frame on port: %u, queue: %u, length: %u\n",
+					__FUNCTION__, header.port_no, queue, header.length);
 			//dump_frame(&header, queue, frame);
 			generate_new_packet_in(&header, queue, frame);
 		}
@@ -176,60 +214,22 @@ void read_frame_from_cpu_queues(u32 count) {
 	}
 }
 
-/**
- * @name x86_background_tasks_thread
- * @brief contents the infinite loop checking for ports and timeouts
- */
-void* bg_frame_extractor_routine(void* param) {
-	u32 xtr_grp_cfg_old, inj_grp_cfg_old;
+/* Dump frame */
+/*static void dump_frame(vtss_packet_rx_header_t *header, vtss_packet_rx_queue_t queue, u8 *frame) {
+ char buf[100], *p;
+ u32 i;
 
-	l2sw_reg_read(0, XTR_GRP_CFG_REG, &xtr_grp_cfg_old);
-	l2sw_reg_read(0, INJ_GRP_CFG_REG, &inj_grp_cfg_old);
+ ROFL_INFO("["DRIVER_NAME"] Received frame on port: %u, queue: %u, length: %u\n", header->port_no, queue,
+ header->length);
+ for (i = 0, p = &buf[0]; i < header->length; i++) {
+ if ((i % 16) == 0) {
+ p = &buf[0];
+ p += sprintf(p, "%04x: ", i);
+ }
 
-	l2sw_reg_write(0, XTR_GRP_CFG_REG, xtr_grp_cfg_old & ~(CPU_FRAME_BYTE_SWAP | CPU_FRAME_EOF_WORD_POS_AFTER));
-	l2sw_reg_write(0, INJ_GRP_CFG_REG, inj_grp_cfg_old & ~(CPU_FRAME_BYTE_SWAP));
-
-	while (bg_continue_execution) {
-		sleep(1);
-
-		ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: reading from CPU queues...\n");
-		read_frame_from_cpu_queues(MAX_FRAMES_RECV);
-	}
-
-	//Printing some information
-	ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: Finishing thread execution\n");
-
-	/* restore CPU injection/extraction configuration */
-	l2sw_reg_write(0, XTR_GRP_CFG_REG, xtr_grp_cfg_old);
-	l2sw_reg_write(0, INJ_GRP_CFG_REG, inj_grp_cfg_old);
-
-	//Exit
-	pthread_exit(NULL);
-}
-
-/**
- * launches the main thread
- */
-rofl_result_t launch_background_frame_extractor() {
-	//Set flag
-	bg_continue_execution = true;
-
-	ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: launching background frame extractor\n");
-
-	if (pthread_create(&bg_thread, NULL, bg_frame_extractor_routine, NULL) < 0) {
-		ROFL_ERR("<%s:%d> pthread_create failed\n", __func__, __LINE__);
-		return ROFL_FAILURE;
-	}
-	return ROFL_SUCCESS;
-}
-
-rofl_result_t stop_background_frame_extractor() {
-
-	ROFL_INFO("["DRIVER_NAME"] bg_frame_extractor.cc: stopping background frame extractor\n");
-
-	bg_continue_execution = false;
-	pthread_join(bg_thread, NULL);
-
-	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: background frame extractor stopped\n");
-	return ROFL_SUCCESS;
-}
+ p += sprintf(p, "%02x%c", frame[i], ((i + 9) % 16) == 0 ? '-' : ' ');
+ if (((i + 1) % 16) == 0 || (i + 1) == header->length)
+ ROFL_INFO("%s\n", buf);
+ }
+ ROFL_INFO("\n");
+ }*/

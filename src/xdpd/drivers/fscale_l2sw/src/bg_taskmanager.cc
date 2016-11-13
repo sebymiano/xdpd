@@ -45,10 +45,65 @@ static bool bg_continue_execution = true;
  *
  * - execute the expiration of the flow entries.
  * - update the status of the ports
- * - TODO: Get the packet_in events from the kernel and send appropriate OF messages
+ * - Get the packet_in events from the kernel and send appropriate OF messages (see bg_frame_extractor)
  * - free space in the buffer pool when a buffer is too old
  * - more?
  */
+
+/**
+ * @name x86_background_tasks_thread
+ * @brief contents the infinite loop checking for ports and timeouts
+ */
+void* x86_background_tasks_routine(void* param) {
+	while (bg_continue_execution) {
+
+		sleep(1);
+
+		ROFL_INFO("["DRIVER_NAME"] %s(): updating statistics...\n", __FUNCTION__);
+		update_misc_stats();
+
+		ROFL_INFO("["DRIVER_NAME"] %s(): processing timeouts...\n", __FUNCTION__);
+		process_timeouts();
+
+		ROFL_INFO("["DRIVER_NAME"] %s(): checking port link status...\n", __FUNCTION__);
+		check_port_status();
+
+	}
+
+	//Printing some information
+	ROFL_INFO("["DRIVER_NAME"] %s(): Finishing background_tasks_manager execution\n", __FUNCTION__);
+
+	//Exit
+	pthread_exit(NULL);
+}
+
+/**
+ * launches the main thread
+ */
+rofl_result_t launch_background_tasks_manager() {
+	//Set flag
+	bg_continue_execution = true;
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): launching background tasks manager\n", __FUNCTION__);
+
+	if (pthread_create(&bg_thread, NULL, x86_background_tasks_routine, NULL) < 0) {
+		ROFL_ERR("<%s:%d> pthread_create failed\n", __func__, __LINE__);
+		return ROFL_FAILURE;
+	}
+	return ROFL_SUCCESS;
+}
+
+rofl_result_t stop_background_tasks_manager() {
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): stopping background tasks manager\n", __FUNCTION__);
+
+	bg_continue_execution = false;
+	pthread_join(bg_thread, NULL);
+
+	ROFL_INFO("["DRIVER_NAME"] %s(): background tasks manager stopped\n", __FUNCTION__);
+	return ROFL_SUCCESS;
+}
+
 
 void check_port_status() {
 	vtss_port_no_t port_no;
@@ -69,6 +124,7 @@ void check_port_status() {
 
 			port = physical_switch_get_port_by_name(iface_name);
 
+			//Check only ports attached to a LSI
 			if(port->is_attached_to_sw) {
 				if ( !((port->state & PORT_STATE_LINK_DOWN) > 0) && (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
 					//Port changed to down state
@@ -189,59 +245,5 @@ int process_timeouts() {
 		last_time_pool_checked = now;
 	}
 
-	return ROFL_SUCCESS;
-}
-
-/**
- * @name x86_background_tasks_thread
- * @brief contents the infinite loop checking for ports and timeouts
- */
-void* x86_background_tasks_routine(void* param) {
-	while (bg_continue_execution) {
-
-		sleep(1);
-
-		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: updating statistics...\n");
-		update_misc_stats();
-
-		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: processing timeouts...\n");
-		process_timeouts();
-
-		ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: checking port link status...\n");
-		check_port_status();
-
-	}
-
-	//Printing some information
-	ROFL_INFO("[bg] Finishing thread execution\n");
-
-	//Exit
-	pthread_exit(NULL);
-}
-
-/**
- * launches the main thread
- */
-rofl_result_t launch_background_tasks_manager() {
-	//Set flag
-	bg_continue_execution = true;
-
-	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: launching background tasks manager\n");
-
-	if (pthread_create(&bg_thread, NULL, x86_background_tasks_routine, NULL) < 0) {
-		ROFL_ERR("<%s:%d> pthread_create failed\n", __func__, __LINE__);
-		return ROFL_FAILURE;
-	}
-	return ROFL_SUCCESS;
-}
-
-rofl_result_t stop_background_tasks_manager() {
-
-	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: stopping background tasks manager\n");
-
-	bg_continue_execution = false;
-	pthread_join(bg_thread, NULL);
-
-	ROFL_INFO("[fscale_l2sw]bg_taskmanager.cc: background tasks manager stopped\n");
 	return ROFL_SUCCESS;
 }
