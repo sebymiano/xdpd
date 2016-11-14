@@ -138,6 +138,8 @@ void check_ports_link_status() {
 					update_port_link_status(iface_name, TRUE);
 					ROFL_INFO("["DRIVER_NAME"] %s(): Port state updated\n", __FUNCTION__);
 				}
+			} else {
+				ROFL_INFO("["DRIVER_NAME"] %s(): Port %s not attached to LSI\n", __FUNCTION__, iface_name);
 			}
 		}
 	}
