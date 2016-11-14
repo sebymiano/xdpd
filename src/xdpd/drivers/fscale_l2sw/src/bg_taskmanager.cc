@@ -66,7 +66,7 @@ void* x86_background_tasks_routine(void* param) {
 		process_timeouts();
 
 		ROFL_INFO("["DRIVER_NAME"] %s(): checking port link status...\n", __FUNCTION__);
-		check_port_status();
+		check_ports_link_status();
 
 	}
 
