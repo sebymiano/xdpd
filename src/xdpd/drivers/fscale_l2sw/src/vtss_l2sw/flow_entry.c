@@ -83,10 +83,11 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 
 	of1x_packet_action_t* action;
 	uint16_t port;
-	int i;
 
-	//If entry has not actions we are done (should we really install it down there?)
-	if (!of1x_entry->inst_grp.instructions[OF1X_IT_APPLY_ACTIONS].apply_actions) {
+	if(of1x_entry->inst_grp.num_of_instructions == 0 && of1x_entry->matches.num_elements != 0) {
+		ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions: generating drop action\n");
+		acl_entry->action.learn = false;
+		acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
 		return VTSS_RC_OK;
 	}
 
@@ -96,16 +97,6 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 		assert(0);
 		return VTSS_RC_ERROR;
 	}
-
-	for (i = VTSS_PORT_NO_START; i < VTSS_PORT_NO_END && is_valid_port(i); i++) {
-		acl_entry->action.port_list[i] = false;
-	}
-
-	if(of1x_entry->inst_grp.num_of_instructions == 0 && of1x_entry->matches.num_elements != 0) {
-		ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions: generating drop action\n");
-		acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
-	}
-
 
 	//Loop over apply actions only
 	for (; action; action = action->next) {
