@@ -81,7 +81,6 @@ rofl_result_t vtss_l2sw_init() {
 	}
 
 	vtss_l2sw_remove_all_acl();
-	vtss_l2sw_add_default_acl();
 
 	return ROFL_SUCCESS;
 }
