@@ -105,7 +105,7 @@ rofl_result_t stop_background_tasks_manager() {
 }
 
 
-void check_port_status() {
+void check_ports_link_status() {
 	vtss_port_no_t port_no;
 	vtss_port_status_t status_phy;
 	switch_port_t* port;
@@ -126,6 +126,7 @@ void check_port_status() {
 
 			//Check only ports attached to a LSI
 			if(port->is_attached_to_sw) {
+				ROFL_INFO("["DRIVER_NAME"] %s(): Checking status for port %s\n", __FUNCTION__, iface_name);
 				if ( !((port->state & PORT_STATE_LINK_DOWN) > 0) && (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
 					//Port changed to down state
 					ROFL_INFO("["DRIVER_NAME"] %s(): Port changed to down state, updating state...\n", __FUNCTION__);

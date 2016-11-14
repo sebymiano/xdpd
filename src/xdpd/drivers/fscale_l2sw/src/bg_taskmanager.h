@@ -26,7 +26,7 @@ ROFL_BEGIN_DECLS
 
 void update_misc_stats();
 
-void check_port_status();
+void check_port_link_status();
 
 int process_timeouts();
 
