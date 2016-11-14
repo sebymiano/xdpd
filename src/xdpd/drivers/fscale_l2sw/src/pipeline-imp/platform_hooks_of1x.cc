@@ -143,6 +143,8 @@ void plaftorm_of1x_add_entry_hook(of1x_flow_entry_t* new_entry) {
 
 	vtss_l2sw_add_flow_entry(new_entry);
 
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): Entry added to the hardware :)\n", __FUNCTION__);
+
 }
 
 void platform_of1x_modify_entry_hook(of1x_flow_entry_t* old_entry, of1x_flow_entry_t* mod, int reset_count) {
@@ -158,6 +160,7 @@ void platform_of1x_modify_entry_hook(of1x_flow_entry_t* old_entry, of1x_flow_ent
 	vtss_l2sw_delete_flow_entry(old_entry);
 	vtss_l2sw_add_flow_entry(mod);
 
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): Entry modified to the hardware :)\n", __FUNCTION__);
 }
 
 void platform_of1x_remove_entry_hook(of1x_flow_entry_t* entry) {
@@ -172,6 +175,8 @@ void platform_of1x_remove_entry_hook(of1x_flow_entry_t* entry) {
 	}
 
 	vtss_l2sw_delete_flow_entry(entry);
+
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): Entry removed from the hardware :)\n", __FUNCTION__);
 }
 
 void platform_of1x_update_stats_hook(of1x_flow_entry_t* entry) {

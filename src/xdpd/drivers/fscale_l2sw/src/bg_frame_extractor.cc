@@ -142,7 +142,7 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 		pack->pktin_send_len = ((of1x_switch_t*) sw)->pipeline.miss_send_len;
 
 		xdpd::gnu_linux::storeid storage_id = storage->store_packet(pkt);
-		ROFL_DEBUG("["DRIVER_NAME"] %s(): PACKET_IN storage ID %d for datapacket pkt %d dpid %d  \n",
+		ROFL_INFO("["DRIVER_NAME"] %s(): PACKET_IN storage ID %d for datapacket pkt %d dpid %d  \n",
 				__FUNCTION__, storage_id, pkt, sw->dpid);
 
 		//Fill matches
@@ -153,31 +153,31 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 				pack->clas_state.port_in, storage_id, pkt->__cookie, pack->get_buffer(), pack->pktin_send_len,
 				pack->get_buffer_length(), &matches);
 
-		ROFL_DEBUG(
+		ROFL_INFO(
 				"["DRIVER_NAME"] %s(): sw->dpid = %u, pack->pktin_table_id = %u, reason = %u \
 						 port_in = %u, storage_id = %u, pktin_send_len = %u, buffer_length = %u\n",
 				__FUNCTION__, sw->dpid, pack->pktin_table_id, pack->pktin_reason, pack->clas_state.port_in, storage_id,
 				pack->pktin_send_len, pack->get_buffer_length());
 
 		if (HAL_FAILURE == r) {
-			ROFL_DEBUG("["DRIVER_NAME"] %s(): cmm packet_in unsuccessful \n", __FUNCTION__);
+			ROFL_INFO("["DRIVER_NAME"] %s(): cmm packet_in unsuccessful \n", __FUNCTION__);
 
 			//TODO: I should remove also the packet from the storage (is not possible)
 			xdpd::gnu_linux::bufferpool::release_buffer(pkt);
 		}
 		if (HAL_SUCCESS == r)
-			ROFL_DEBUG("["DRIVER_NAME"] %s(): cmm packet_in successful \n", __FUNCTION__);
+			ROFL_INFO("["DRIVER_NAME"] %s(): cmm packet_in successful \n", __FUNCTION__);
 	} else {
 		if (!port) {
-			ROFL_DEBUG("["DRIVER_NAME"] %s(): port doesn't exist", __FUNCTION__);
+			ROFL_INFO("["DRIVER_NAME"] %s(): port doesn't exist", __FUNCTION__);
 			return;
 		}
 
 		if (!port->is_attached_to_sw) {
-			ROFL_DEBUG("["DRIVER_NAME"] %s(): port %d is not attached to a logical switch\n", __FUNCTION__, header->port_no);
+			ROFL_INFO("["DRIVER_NAME"] %s(): port %d is not attached to a logical switch\n", __FUNCTION__, header->port_no);
 		}
 		if (!port->of_generate_packet_in) {
-			ROFL_DEBUG("["DRIVER_NAME"] %s(): port %d cannot generate pkt_in \n", __FUNCTION__, header->port_no);
+			ROFL_INFO("["DRIVER_NAME"] %s(): port %d cannot generate pkt_in \n", __FUNCTION__, header->port_no);
 		}
 	}
 

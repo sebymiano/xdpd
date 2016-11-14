@@ -85,7 +85,7 @@ bool is_valid_entry(of1x_flow_entry_t * entry) {
 		return false;
 	}
 
-	ROFL_INFO("["DRIVER_NAME"] %s(): Great!! All actions and entries are l2. Let's offload them :)\n", __FUNCTION__);
+	ROFL_INFO("["DRIVER_NAME"] %s(): Great!! All actions and entries are l2\n", __FUNCTION__);
 
 	return true;
 }
