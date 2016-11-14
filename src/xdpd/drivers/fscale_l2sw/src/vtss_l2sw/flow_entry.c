@@ -84,6 +84,8 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 	of1x_packet_action_t* action;
 	uint16_t port;
 
+	ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions: number of actions -> %x\n", of1x_entry->inst_grp.num_of_instructions);
+
 	if(of1x_entry->inst_grp.num_of_instructions == 0 && of1x_entry->matches.num_elements != 0) {
 		ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions: generating drop action\n");
 		acl_entry->action.learn = false;
