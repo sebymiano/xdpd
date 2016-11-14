@@ -70,7 +70,7 @@ void check_ports_link_status() {
 			port = physical_switch_get_port_by_name(iface_name);
 
 			//Check only ports attached to a LSI
-			if(port->is_attached_to_sw) {
+			if(port->attached_sw) {
 				ROFL_INFO("["DRIVER_NAME"] %s(): Checking status for port %s\n", __FUNCTION__, iface_name);
 				if ( !((port->state & PORT_STATE_LINK_DOWN) > 0) && (status_phy.link == FALSE || status_phy.link_down == TRUE)) {
 					//Port changed to down state
