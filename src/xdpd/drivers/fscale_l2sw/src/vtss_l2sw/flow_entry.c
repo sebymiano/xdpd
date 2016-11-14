@@ -62,6 +62,12 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 				return VTSS_RC_ERROR;
 			}
 			break;
+		case OF1X_MATCH_ETH_TYPE:
+			if (!add_or_update_eth_type(acl_entry, type, match)) {
+				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_eth_type failed\n");
+				return VTSS_RC_ERROR;
+			}
+			break;
 		default:
 			//type = OF1X_MATCH_MAX;
 			break;

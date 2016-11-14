@@ -142,3 +142,56 @@ bool add_or_update_eth_src(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_m
 
 	return true;
 }
+
+bool add_or_update_eth_type(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_match_t* match) {
+
+	uint8_t eth_type[2];
+	uint8_t eth_type_mask[2];
+
+	memcpy(&eth_type, &(match->__tern->value.u16), 2);
+	memcpy(&eth_type_mask, &(match->__tern->mask.u16), 2);
+
+	if (type == OF1X_MATCH_MAX) {
+		//This is the first match
+		if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ETYPE, acl_entry) != VTSS_RC_OK) {
+			ROFL_ERR(
+					"["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: failed to initialize ACL entry for OF1X_MATCH_ETH_TYPE\n");
+			return false;
+		}
+
+		//TODO: Maybe this initialization should be done directly in the action generate_acl_entry_actions
+		//Forward to CPU
+		acl_entry->action.cpu = false;
+		//Only first frame forwarded to CPU
+		acl_entry->action.cpu_once = false;
+		//CPU queue
+		//acl_entry->action.cpu_queue = NULL;
+		//Disable learning
+		acl_entry->action.learn = false;
+
+		/* Monitor all ports */
+		memset(acl_entry->port_list, TRUE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->port_list[0]));
+
+	} else if (type == OF1X_MATCH_IN_PORT || type == OF1X_MATCH_IN_PHY_PORT) {
+		BOOL port_list[VTSS_PORT_ARRAY_SIZE];
+
+		//Save the current value
+		memcpy(&port_list, &acl_entry->port_list, VTSS_PORT_ARRAY_SIZE * sizeof(port_list[0]));
+
+		if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ETYPE, acl_entry) != VTSS_RC_OK) {
+			ROFL_ERR(
+					"["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: failed to initialize ACL entry for OF1X_MATCH_ETH_TYPE\n");
+			return false;
+		}
+
+		//Restore the previous port_in
+		memcpy(&acl_entry->port_list, &port_list, VTSS_PORT_ARRAY_SIZE * sizeof(port_list[0]));
+	}
+
+	//FIXME: Maybe here I should create the eth struct if it has been initialized with FRAME_ANY
+	memcpy(&acl_entry->frame.etype.etype.value, &eth_type, 2);
+	memcpy(&acl_entry->frame.etype.etype.mask, &eth_type_mask, 2);
+
+	return true;
+}
+
