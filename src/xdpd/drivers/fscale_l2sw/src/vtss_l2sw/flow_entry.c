@@ -101,6 +101,12 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 		acl_entry->action.port_list[i] = false;
 	}
 
+	if(of1x_entry->inst_grp.num_of_instructions == 0 && of1x_entry->matches.num_elements != 0) {
+		ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions: generating drop action\n", port);
+		acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
+	}
+
+
 	//Loop over apply actions only
 	for (; action; action = action->next) {
 		switch (action->type) {
