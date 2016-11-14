@@ -107,14 +107,14 @@ bool actions_are_only_l2(of1x_action_group_t* action_group) {
 		return false;
 	}
 
-	//Here I'm not sure if the instruction contains our supported action
+	/*//Here I'm not sure if the instruction contains our supported action
 	if (!bitmap128_is_bit_set(&action_group->bitmap, OF1X_AT_OUTPUT)
 			&& !bitmap128_is_bit_set(&action_group->bitmap, OF1X_AT_NO_ACTION)) {
 		//This instruction is empty because is doesn't contain action output
 		ROFL_INFO("["DRIVER_NAME"] %s(): there aren't actions different from l2 but there are no l2 actions also\n",
 				__FUNCTION__);
 		return false;
-	}
+	}*/
 
 	return true;
 }
