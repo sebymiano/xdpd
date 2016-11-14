@@ -20,6 +20,8 @@ bool add_or_update_eth_dst(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_m
 
 bool add_or_update_eth_src(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_match_t* match);
 
+bool add_or_update_eth_type(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_match_t* match);
+
 //C++ extern C
 ROFL_END_DECLS
 
