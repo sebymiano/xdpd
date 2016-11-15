@@ -33,6 +33,8 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 		return VTSS_RC_OK;
 	}
 
+	memset(acl_entry->port_list, FALSE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->port_list[0]));
+
 	//Go through all the matches and set entry matches
 	for (match = of1x_entry->matches.head; match; match = match->next) {
 		ROFL_DEBUG("["DRIVER_NAME"] of1x_entry->type : %x \n", match->type);
@@ -100,31 +102,32 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 		return VTSS_RC_ERROR;
 	}
 
+	acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_NONE;
+	memset(acl_entry->action.port_list, FALSE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->action.port_list[0]));
+
 	//Loop over apply actions only
 	for (; action; action = action->next) {
 		switch (action->type) {
 
 		case OF1X_AT_OUTPUT:
 			port = of1x_get_packet_action_field32(action);
-			ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions   ENTRY port %d\n", port);
+			ROFL_INFO("["DRIVER_NAME"] %s -> ENTRY port %d\n", __FUNCTION__, port);
 			switch (of1x_get_packet_action_field32(action)) {
 			case OF1X_PORT_CONTROLLER:
-				ROFL_DEBUG("["DRIVER_NAME"] flow_entry.c: action for redirect packets to controller\n");
+				ROFL_INFO("["DRIVER_NAME"] %s : action for redirect packets to controller\n", __FUNCTION__);
 				acl_entry->action.learn = false;
 				/* Enable CPU redirection */
 				acl_entry->action.cpu = true;
 
-				/*
-				 // Disable forwarding of the frames
-				 acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
-				 memset(acl_entry->action.port_list, FALSE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->action.port_list[0]));
-				 */
+				// Disable forwarding of the frames for that port
+				acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
+				memset(acl_entry->action.port_list, FALSE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->action.port_list[0]));
 				break;
 			case OF1X_PORT_FLOOD:
 			case OF1X_PORT_NORMAL:
 			case OF1X_PORT_ALL:
 			case OF1X_PORT_IN_PORT:
-				ROFL_ERR("["DRIVER_NAME"] flow_entry.c: action not supported\n");
+				ROFL_ERR("["DRIVER_NAME"] %s: action not supported\n", __FUNCTION__);
 				return VTSS_RC_ERROR;
 				break;
 			default:
@@ -132,9 +135,10 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 					//TODO: Here I should check for flooding or mirroring ecc...
 					acl_entry->action.learn = false;
 					acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_REDIR;
-					acl_entry->action.port_list[port] = true;
+					acl_entry->action.port_list[port] = TRUE;
+					ROFL_INFO("["DRIVER_NAME"] %s -> Action to redirect packets to port %d\n", __FUNCTION__, port);
 				} else {
-					ROFL_ERR("["DRIVER_NAME"] flow_entry.c: wrong port in vtss_l2sw_generate_acl_entry_actions\n");
+					ROFL_ERR("["DRIVER_NAME"] %s: wrong port in vtss_l2sw_generate_acl_entry_actions\n", __FUNCTION__);
 					assert(0);
 				}
 				break;

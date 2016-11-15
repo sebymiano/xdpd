@@ -17,7 +17,6 @@ bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, 
 				return false;
 			}
 
-			//TODO: Maybe this initialization should be done directly in the action generate_acl_entry_actions
 			//Forward to CPU
 			acl_entry->action.cpu = false;
 			//Only first frame forwarded to CPU

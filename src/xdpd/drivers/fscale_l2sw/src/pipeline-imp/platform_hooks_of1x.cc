@@ -196,6 +196,11 @@ void platform_of1x_update_stats_hook(of1x_flow_entry_t* entry) {
 		return;
 	}
 
+	if (!is_valid_entry(entry)) {
+		ROFL_ERR("["DRIVER_NAME"] %s(): not a hardware entry\n", __FUNCTION__);
+		return;
+	}
+
 	vtss_l2sw_update_entry_stats(entry);
 
 }
