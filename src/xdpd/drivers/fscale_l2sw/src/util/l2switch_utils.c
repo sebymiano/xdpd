@@ -157,3 +157,7 @@ bool is_entry_for_mac_table(of1x_flow_entry_t * entry) {
 
 	return false;
 }
+
+void dump_l2sw_flow_acl_entries() {
+
+}

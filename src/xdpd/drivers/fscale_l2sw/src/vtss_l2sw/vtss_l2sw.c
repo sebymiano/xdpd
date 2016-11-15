@@ -126,7 +126,6 @@ rofl_result_t vtss_l2sw_remove_all_acl(){
 
 rofl_result_t vtss_l2sw_add_default_acl(){
 	vtss_ace_t acl_entry;
-	vtss_l2sw_flow_entry_t* vtss_entry;
 
 	ROFL_INFO("["DRIVER_NAME"] %s(): generating default entry matches...\n", __FUNCTION__);
 
@@ -148,19 +147,9 @@ rofl_result_t vtss_l2sw_add_default_acl(){
 	ROFL_INFO("["DRIVER_NAME"] %s(): adding default ACL with id: %d\n", __FUNCTION__, aclId);
 	acl_entry.id = aclId;
 
-	vtss_entry = vtss_l2sw_init_vtss_flow_entry();
-	if (!vtss_entry)
-		return ROFL_FAILURE;
-
-	vtss_entry->type = VTSS_ENTRY_TYPE_ACL;
-	vtss_entry->acl_id = aclId;
-	//Do the association with the vtss_l2sw state
-	entry->platform_state = (of1x_flow_entry_platform_state_t*) vtss_entry;
-
 	/* Add ACL entry */
 	if (vtss_ace_add(NULL, VTSS_ACE_ID_LAST, &acl_entry) != VTSS_RC_OK) {
 		ROFL_ERR("["DRIVER_NAME"] %s(): vtss_ace_add failed, unable to add the ACL\n", __FUNCTION__);
-		vtss_l2sw_destroy_vtss_flow_entry(vtss_entry);
 		return ROFL_FAILURE;
 	}
 

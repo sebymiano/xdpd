@@ -145,7 +145,7 @@ void plaftorm_of1x_add_entry_hook(of1x_flow_entry_t* new_entry) {
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s(): Entry added to the hardware :)\n", __FUNCTION__);
 
-	//dump_l2sw_flow_acl_entries();
+	dump_l2sw_flow_acl_entries();
 
 }
 
