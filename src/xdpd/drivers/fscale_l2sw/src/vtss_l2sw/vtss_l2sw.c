@@ -142,7 +142,7 @@ rofl_result_t vtss_l2sw_add_default_acl(){
 
 	acl_entry.action.learn = false;
 	acl_entry.action.cpu = true;
-	//acl_entry.action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
+	acl_entry.action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
 
 	ROFL_INFO("["DRIVER_NAME"] %s(): adding default ACL with id: %d\n", __FUNCTION__, aclId);
 	acl_entry.id = aclId;

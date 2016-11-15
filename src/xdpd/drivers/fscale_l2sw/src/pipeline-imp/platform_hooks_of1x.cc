@@ -141,7 +141,10 @@ void plaftorm_of1x_add_entry_hook(of1x_flow_entry_t* new_entry) {
 		return;
 	}
 
-	vtss_l2sw_add_flow_entry(new_entry);
+	if(vtss_l2sw_add_flow_entry(new_entry) != ROFL_SUCCESS) {
+		ROFL_INFO("["DRIVER_NAME"] calling %s(): Unable to add the entry to the hardware :)\n", __FUNCTION__);
+		return;
+	}
 
 	ROFL_INFO("["DRIVER_NAME"] calling %s(): Entry added to the hardware :)\n", __FUNCTION__);
 
