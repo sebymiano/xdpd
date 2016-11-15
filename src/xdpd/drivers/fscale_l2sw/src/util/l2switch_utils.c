@@ -11,7 +11,9 @@
 #include <rofl/datapath/pipeline/common/datapacket.h>
 #include <rofl/datapath/pipeline/physical_switch.h>
 #include <rofl/datapath/hal/cmm.h>
+#include <fsl_utils/fsl_utils.h>
 #include "../config.h"
+
 
 bool is_l2_entry(of1x_flow_entry_t * entry) {
 	bitmap128_t no_l2_bitmap;
@@ -156,8 +158,4 @@ bool is_entry_for_mac_table(of1x_flow_entry_t * entry) {
 			__FUNCTION__);
 
 	return false;
-}
-
-void dump_l2sw_flow_acl_entries() {
-
 }

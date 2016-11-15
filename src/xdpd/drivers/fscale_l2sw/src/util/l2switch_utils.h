@@ -17,8 +17,6 @@ bool actions_are_only_l2(of1x_action_group_t* action_group);
 
 bool is_entry_for_mac_table(of1x_flow_entry_t * entry);
 
-void dump_l2sw_flow_acl_entries();
-
 //Extern C
 ROFL_END_DECLS
 

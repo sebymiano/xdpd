@@ -10,6 +10,7 @@
 #include "../io/datapacketx86.h"
 #include "../pipeline-imp/ls_internal_state.h"
 #include "../util/l2switch_utils.h"
+#include "../vtss_l2sw/stats.h"
 #include "../vtss_l2sw/vtss_l2sw.h"
 
 using namespace xdpd::gnu_linux;
@@ -26,7 +27,8 @@ rofl_result_t platform_post_init_of1x_switch(of1x_switch_t* sw) {
 	of1x_flow_table_t* table;
 
 	table = sw->pipeline.tables;
-
+#include "../vtss_l2sw/vtss_l2sw.h"
+#include "../vtss_l2sw/flow_entry.h"
 	for (i = 0; i < sw->pipeline.num_of_tables; ++i) {
 		//Set appropriate flags (default: send packet to controller)
 		table->default_action = OF1X_TABLE_MISS_CONTROLLER;
@@ -185,5 +187,15 @@ void platform_of1x_remove_entry_hook(of1x_flow_entry_t* entry) {
 }
 
 void platform_of1x_update_stats_hook(of1x_flow_entry_t* entry) {
+	ROFL_INFO("["DRIVER_NAME"] %s(): function start\n", __FUNCTION__);
+
+	ROFL_INFO("["DRIVER_NAME"] calling %s(): checking the flow entry statistics\n", __FUNCTION__);
+
+	if(!entry){
+		ROFL_ERR("["DRIVER_NAME"] %s(): received entry not valid\n", __FUNCTION__);
+		return;
+	}
+
+	vtss_l2sw_update_entry_stats(entry);
 
 }
