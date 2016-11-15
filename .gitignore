@@ -47,5 +47,7 @@ libs/vtss/
 libs/vtss_api/
 libs/COPYING
 libs/fsl_utils/
+libs/board_init/
+libs/port_setup/
 
 !.gitignore
