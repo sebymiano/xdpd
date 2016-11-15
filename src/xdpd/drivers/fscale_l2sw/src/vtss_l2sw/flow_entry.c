@@ -149,7 +149,7 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 				return VTSS_RC_ERROR;
 				break;
 			default:
-				if (is_valid_port(port) && !is_internal_port(port)) {
+				if (is_valid_port(hw_port) && !is_internal_port(hw_port)) {
 					//TODO: Here I should check for flooding or mirroring ecc...
 					acl_entry->action.learn = false;
 					acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_REDIR;
