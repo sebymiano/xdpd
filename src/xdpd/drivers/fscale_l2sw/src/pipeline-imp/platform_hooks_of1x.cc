@@ -12,6 +12,7 @@
 #include "../util/l2switch_utils.h"
 #include "../vtss_l2sw/stats.h"
 #include "../vtss_l2sw/vtss_l2sw.h"
+#include "../vtss_l2sw/flow_entry.h"
 
 using namespace xdpd::gnu_linux;
 
@@ -27,8 +28,7 @@ rofl_result_t platform_post_init_of1x_switch(of1x_switch_t* sw) {
 	of1x_flow_table_t* table;
 
 	table = sw->pipeline.tables;
-#include "../vtss_l2sw/vtss_l2sw.h"
-#include "../vtss_l2sw/flow_entry.h"
+
 	for (i = 0; i < sw->pipeline.num_of_tables; ++i) {
 		//Set appropriate flags (default: send packet to controller)
 		table->default_action = OF1X_TABLE_MISS_CONTROLLER;
