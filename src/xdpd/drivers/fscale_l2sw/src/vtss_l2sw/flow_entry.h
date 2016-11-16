@@ -11,8 +11,6 @@
 #include <vtss_api/vtss_api.h>
 #include <vtss_api/vtss_security_api.h>
 
-extern int aclId;
-
 #define ACL_INVALID_ID -1
 
 typedef enum vtss_l2sw_flow_entry_type {

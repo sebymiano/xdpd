@@ -9,8 +9,6 @@
 #include "ports.h"
 
 
-int aclId = 1;
-
 vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_entry_t* of1x_entry) {
 
 	of1x_match_t* match;

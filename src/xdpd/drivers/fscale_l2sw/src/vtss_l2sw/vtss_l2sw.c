@@ -20,6 +20,7 @@
 #include <fcntl.h>
 
 #include "flow_entry.h"
+#include "../util/acl_util.h"
 
 rofl_result_t vtss_l2sw_init() {
 	vtss_inst_create_t create;
@@ -126,6 +127,7 @@ rofl_result_t vtss_l2sw_remove_all_acl(){
 
 rofl_result_t vtss_l2sw_add_default_acl(){
 	vtss_ace_t acl_entry;
+	int aclID;
 
 	ROFL_INFO("["DRIVER_NAME"] %s(): generating default entry matches...\n", __FUNCTION__);
 
@@ -144,8 +146,9 @@ rofl_result_t vtss_l2sw_add_default_acl(){
 	acl_entry.action.cpu = true;
 	acl_entry.action.port_action = VTSS_ACL_PORT_ACTION_FILTER;
 
-	ROFL_INFO("["DRIVER_NAME"] %s(): adding default ACL with id: %d\n", __FUNCTION__, aclId);
-	acl_entry.id = aclId;
+	aclID = getAclID_C();
+	ROFL_INFO("["DRIVER_NAME"] %s(): adding default ACL with id: %d\n", __FUNCTION__, aclID);
+	acl_entry.id = aclID;
 
 	/* Add ACL entry */
 	if (vtss_ace_add(NULL, VTSS_ACE_ID_LAST, &acl_entry) != VTSS_RC_OK) {
@@ -153,7 +156,6 @@ rofl_result_t vtss_l2sw_add_default_acl(){
 		return ROFL_FAILURE;
 	}
 
-	aclId++;
 	ROFL_INFO("["DRIVER_NAME"] %s(): default ACL added...\n", __FUNCTION__);
 
 	return ROFL_SUCCESS;
@@ -164,6 +166,7 @@ rofl_result_t vtss_l2sw_add_default_acl(){
 rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 	vtss_ace_t acl_entry;
 	vtss_l2sw_flow_entry_t* vtss_entry;
+	int aclID;
 
 	ROFL_INFO("["DRIVER_NAME"] %s(): generating ACL entry matches...\n", __FUNCTION__);
 
@@ -178,17 +181,18 @@ rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 		ROFL_ERR("["DRIVER_NAME"] %s(): generation of ACL actions failed\n", __FUNCTION__);
 		return ROFL_FAILURE;
 	}
+	aclID = getAclID_C();
 
-	ROFL_INFO("["DRIVER_NAME"] %s(): adding ACL with id: %d\n", __FUNCTION__, aclId);
+	ROFL_INFO("["DRIVER_NAME"] %s(): adding ACL with id: %d\n", __FUNCTION__, aclID);
 
-	acl_entry.id = aclId;
+	acl_entry.id = aclID;
 
 	vtss_entry = vtss_l2sw_init_vtss_flow_entry();
 	if (!vtss_entry)
 		return ROFL_FAILURE;
 
 	vtss_entry->type = VTSS_ENTRY_TYPE_ACL;
-	vtss_entry->acl_id = aclId;
+	vtss_entry->acl_id = aclID;
 	//Do the association with the vtss_l2sw state
 	entry->platform_state = (of1x_flow_entry_platform_state_t*) vtss_entry;
 
@@ -198,8 +202,6 @@ rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 		vtss_l2sw_destroy_vtss_flow_entry(vtss_entry);
 		return ROFL_FAILURE;
 	}
-
-	aclId++;
 
 	ROFL_INFO("["DRIVER_NAME"] %s(): ACL added...\n", __FUNCTION__);
 
@@ -221,6 +223,7 @@ rofl_result_t vtss_l2sw_delete_flow_entry(of1x_flow_entry_t* entry) {
 		return ROFL_FAILURE;
 	}
 
+	releaseAclID_C(hw_entry->acl_id);
 	vtss_l2sw_destroy_vtss_flow_entry(hw_entry);
 
 	//FIXME: Here I should also release the id of this entry
@@ -284,7 +287,7 @@ rofl_result_t vtss_l2sw_detele_mac_entry(of1x_flow_entry_t* entry) {
 	return ROFL_SUCCESS;
 }
 
-rofl_result_t vtss_l2sw_add_mac_entry_acl(of1x_flow_entry_t* entry) {
+/*rofl_result_t vtss_l2sw_add_mac_entry_acl(of1x_flow_entry_t* entry) {
 	vtss_ace_t mac_acl_entry;
 	vtss_l2sw_flow_entry_t* vtss_entry;
 
@@ -308,7 +311,7 @@ rofl_result_t vtss_l2sw_add_mac_entry_acl(of1x_flow_entry_t* entry) {
 	//Do the association with the vtss_l2sw state
 	entry->platform_state = (of1x_flow_entry_platform_state_t*) vtss_entry;
 
-	/* Add ACL entry */
+	// Add ACL entry
 	if (vtss_ace_add(NULL, VTSS_ACE_ID_LAST, &mac_acl_entry) != VTSS_RC_OK) {
 		ROFL_ERR("["DRIVER_NAME"] %s(): vtss_l2sw_add_mac_entry_acl failed, unable to add the MAC entry ACL\n", __FUNCTION__);
 		vtss_l2sw_destroy_vtss_flow_entry(vtss_entry);
@@ -345,4 +348,4 @@ rofl_result_t vtss_l2sw_detele_mac_entry_acl(of1x_flow_entry_t* entry) {
 	ROFL_INFO("["DRIVER_NAME"] %s(): MAC entry ACL removed...\n", __FUNCTION__);
 
 	return ROFL_SUCCESS;
-}
+}*/

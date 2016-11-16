@@ -4,7 +4,7 @@
 #include <rofl/common/utils/c_logger.h>
 #include <fsl_utils/fsl_utils.h>
 #include "../config.h"
-#include "ports.h"
+#include "../vtss_l2sw/ports.h"
 #include <rofl/datapath/pipeline/physical_switch.h>
 
 bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_match_t* match) {
