@@ -1,10 +1,10 @@
 #ifndef _ACL_UTIL_
 #define _ACL_UTIL_
 
-#include <vector>
-#include <numeric>
 #include <stdint.h>
 #include <rofl_datapath.h>
+#include <vector>
+#include <numeric>
 
 #define ACL_INVALID_ID -1
 #define ACL_MAX_ID 4096
