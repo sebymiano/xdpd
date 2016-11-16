@@ -4,11 +4,36 @@
 #include <rofl/common/utils/c_logger.h>
 #include <fsl_utils/fsl_utils.h>
 #include "../config.h"
+#include "ports.h"
+#include <rofl/datapath/pipeline/physical_switch.h>
 
 bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_match_t* match) {
-	uint8_t port_no = of1x_get_match_value32(match);
+	uint16_t lg_port;
+	uint16_t hw_port;
+	dpid_list_t* dpid_list;
+	switch_port_t* switch_port;
+	vtss_l2sw_port_t* vtss_port;
 
-	if (is_valid_port(port_no) && !is_internal_port(port_no)) {
+	lg_port = of1x_get_match_value32(match);
+
+	dpid_list = physical_switch_get_all_lsi_dpids();
+	if(dpid_list && dpid_list->dpids){
+		switch_port = physical_switch_get_port_by_num(dpid_list->dpids[0], lg_port);
+		dpid_list_destroy(dpid_list);
+		if(switch_port){
+			vtss_port = (vtss_l2sw_port_t*)switch_port->platform_port_state;
+			hw_port = vtss_port->vtss_l2sw_port_num;
+			ROFL_INFO("["DRIVER_NAME"] %s : Match in for logical port %u -> hardware port %u\n", __FUNCTION__, lg_port, hw_port);
+		} else {
+			ROFL_ERR("["DRIVER_NAME"] %s: Unable to retrieve the hardware port\n", __FUNCTION__);
+			return VTSS_RC_ERROR;
+		}
+	} else {
+		ROFL_ERR("["DRIVER_NAME"] %s: Unable to retrieve the logical switch\n", __FUNCTION__);
+		return VTSS_RC_ERROR;
+	}
+
+	if (is_valid_port(hw_port) && !is_internal_port(hw_port)) {
 		if (type == OF1X_MATCH_MAX) {
 			//This is the first match
 			if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ANY, acl_entry) != VTSS_RC_OK) {
@@ -27,13 +52,12 @@ bool add_or_update_match_in_port(vtss_ace_t* acl_entry, of1x_match_type_t type, 
 			acl_entry->action.learn = false;
 		}
 
-		acl_entry->port_list[port_no] = TRUE;
+		acl_entry->port_list[hw_port] = TRUE;
 
 		return true;
 	}
 
 	return false;
-
 }
 
 bool add_or_update_eth_dst(vtss_ace_t* acl_entry, of1x_match_type_t type, of1x_match_t* match) {

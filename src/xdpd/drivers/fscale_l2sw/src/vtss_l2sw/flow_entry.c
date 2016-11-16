@@ -3,8 +3,11 @@
 #include <stdint.h>
 #include <rofl/common/utils/c_logger.h>
 #include <fsl_utils/fsl_utils.h>
+#include <rofl/datapath/pipeline/physical_switch.h>
 #include "../config.h"
 #include "../util/flow_entry_utils.h"
+#include "ports.h"
+
 
 int aclId = 1;
 
@@ -88,6 +91,7 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 	uint16_t hw_port;
 	dpid_list_t* dpid_list;
 	switch_port_t* switch_port;
+	vtss_l2sw_port_t* vtss_port;
 
 	ROFL_DEBUG("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry_actions: number of actions -> %x\n", of1x_entry->inst_grp.instructions[OF1X_IT_APPLY_ACTIONS].apply_actions->num_of_actions);
 
@@ -116,11 +120,12 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 			lg_port = of1x_get_packet_action_field32(action);
 			//The OpenFlow port is different from the hardware port
 			dpid_list = physical_switch_get_all_lsi_dpids();
-			if(dpid_list && dpid_list[0]){
-				switch_port = physical_switch_get_port_by_num(dpid_list[0], lg_port);
+			if(dpid_list && dpid_list->dpids){
+				switch_port = physical_switch_get_port_by_num(dpid_list->dpids[0], lg_port);
 				dpid_list_destroy(dpid_list);
-				if(switch_port && (vtss_l2sw_port_t*)switch_port->platform_port_state){
-					hw_port = ((vtss_l2sw_port_t*)switch_port->platform_port_state)->vtss_l2sw_port_num;
+				if(switch_port){
+					vtss_port = (vtss_l2sw_port_t*)switch_port->platform_port_state;
+					hw_port = vtss_port->vtss_l2sw_port_num;
 					ROFL_INFO("["DRIVER_NAME"] %s : action OUTPUT for logical port %u -> hardware port %u\n", __FUNCTION__, lg_port, hw_port);
 				} else {
 					ROFL_ERR("["DRIVER_NAME"] %s: Unable to retrieve the hardware port\n", __FUNCTION__);
