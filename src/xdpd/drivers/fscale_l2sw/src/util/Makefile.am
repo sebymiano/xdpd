@@ -8,6 +8,8 @@ libxdpd_driver_fscale_l2sw_src_util_la_SOURCES = \
 					l2switch_utils.c\
 					flow_entry_utils.c\
 					acl_util.cc\
-					acl_util.h
+					acl_util.h\
+					acl_id_storage.cc\
+					acl_id_storage.h
 
 libxdpd_driver_fscale_l2sw_src_util_la_LIBADD = 
