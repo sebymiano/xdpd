@@ -15,7 +15,6 @@ namespace fscale_l2sw {
 class acl_id_storage {
 
 private:
-	int i = 1;
 	std::vector<int> acl_storage;
 
 	struct IncGenerator {

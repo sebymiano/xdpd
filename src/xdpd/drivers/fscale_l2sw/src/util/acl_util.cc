@@ -25,7 +25,7 @@ int acl_id_storage::getAclID(){
 }
 
 bool acl_id_storage::releaseAclID(int id) {
-	if(0 < id < ACL_MAX_ID){
+	if(id > 0 && id < ACL_MAX_ID){
 		acl_storage.push_back(id);
 		return true;
 	}

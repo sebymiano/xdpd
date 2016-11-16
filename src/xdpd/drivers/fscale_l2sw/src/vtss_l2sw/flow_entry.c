@@ -16,11 +16,6 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 
 	ROFL_DEBUG("["DRIVER_NAME"] %s num_of_matches: %x\n", __FUNCTION__, of1x_entry->matches.num_elements);
 
-	if (aclId == VTSS_ACE_ID_LAST) {
-		ROFL_ERR("["DRIVER_NAME"] flow_entry.c: reached maximum number of acl rules\n");
-		return VTSS_RC_ERROR;
-	}
-
 	if (of1x_entry->matches.num_elements == 0) {
 		if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ANY, acl_entry) != VTSS_RC_OK) {
 			ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: failed to initialize ACL entry\n");
@@ -262,11 +257,6 @@ vtss_rc vtss_l2sw_generate_mac_entry_acl(vtss_ace_t* mac_acl_entry, of1x_flow_en
 	uint16_t vlan_id_mask;
 
 	ROFL_DEBUG("["DRIVER_NAME"] calling %s \n", __FUNCTION__);
-
-	if (aclId == VTSS_ACE_ID_LAST) {
-		ROFL_ERR("["DRIVER_NAME"] flow_entry.c: reached maximum number of acl rules\n");
-		return VTSS_RC_ERROR;
-	}
 
 	if (vtss_ace_init(NULL, VTSS_ACE_TYPE_ETYPE, mac_acl_entry) != VTSS_RC_OK) {
 		ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_mac_entry_acl: failed to initialize ACL entry\n");
