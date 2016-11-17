@@ -373,7 +373,7 @@ hal_fm_result_t hal_driver_of1x_process_flow_mod_add(uint64_t dpid, uint8_t tabl
 			//Return failure (buffer ID was invalid/expired)
 			return HAL_FM_FAILURE;
 		}
-
+		ROFL_INFO("["DRIVER_NAME"] calling %s(): processing packet in the software pipeline\n", __FUNCTION__);
 		of_process_packet_pipeline(ROFL_PIPELINE_LOCKED_TID, (of_switch_t*) lsw, pkt);
 	}
 

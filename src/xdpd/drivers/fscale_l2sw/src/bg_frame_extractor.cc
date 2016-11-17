@@ -148,7 +148,10 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 		//Fill matches
 		fill_packet_matches(pkt, &matches);
 
-		//Process packet in
+		//Process packet through the software pipeline
+		of_process_packet_pipeline(ROFL_PIPELINE_LOCKED_TID, lsw, pkt);
+
+		/*//Process packet in
 		hal_result r = hal_cmm_process_of1x_packet_in(sw->dpid, pack->pktin_table_id, pack->pktin_reason,
 				pack->clas_state.port_in, storage_id, pkt->__cookie, pack->get_buffer(), pack->pktin_send_len,
 				pack->get_buffer_length(), &matches);
@@ -166,7 +169,7 @@ void generate_new_packet_in(vtss_packet_rx_header_t *header, vtss_packet_rx_queu
 			xdpd::gnu_linux::bufferpool::release_buffer(pkt);
 		}
 		if (HAL_SUCCESS == r)
-			ROFL_INFO("["DRIVER_NAME"] %s(): cmm packet_in successful \n", __FUNCTION__);
+			ROFL_INFO("["DRIVER_NAME"] %s(): cmm packet_in successful \n", __FUNCTION__);*/
 	} else {
 		if (!port) {
 			ROFL_INFO("["DRIVER_NAME"] %s(): port doesn't exist", __FUNCTION__);

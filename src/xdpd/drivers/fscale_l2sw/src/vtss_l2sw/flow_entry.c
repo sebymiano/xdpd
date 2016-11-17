@@ -49,18 +49,21 @@ vtss_rc vtss_l2sw_generate_acl_entry_matches(vtss_ace_t* acl_entry, of1x_flow_en
 			}
 			break;
 		case OF1X_MATCH_ETH_DST:
+			memset(acl_entry->port_list, TRUE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->port_list[0]));
 			if (!add_or_update_eth_dst(acl_entry, type, match)) {
 				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_eth_dst failed\n");
 				return VTSS_RC_ERROR;
 			}
 			break;
 		case OF1X_MATCH_ETH_SRC:
+			memset(acl_entry->port_list, TRUE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->port_list[0]));
 			if (!add_or_update_eth_src(acl_entry, type, match)) {
 				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_eth_src failed\n");
 				return VTSS_RC_ERROR;
 			}
 			break;
 		case OF1X_MATCH_ETH_TYPE:
+			memset(acl_entry->port_list, TRUE, VTSS_PORT_ARRAY_SIZE * sizeof(acl_entry->port_list[0]));
 			if (!add_or_update_eth_type(acl_entry, type, match)) {
 				ROFL_ERR("["DRIVER_NAME"] vtss_l2sw_generate_acl_entry: add_or_update_eth_type failed\n");
 				return VTSS_RC_ERROR;
@@ -110,24 +113,6 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 		switch (action->type) {
 
 		case OF1X_AT_OUTPUT:
-			lg_port = of1x_get_packet_action_field32(action);
-			//The OpenFlow port is different from the hardware port
-			dpid_list = physical_switch_get_all_lsi_dpids();
-			if(dpid_list && dpid_list->dpids){
-				switch_port = physical_switch_get_port_by_num(dpid_list->dpids[0], lg_port);
-				dpid_list_destroy(dpid_list);
-				if(switch_port){
-					vtss_port = (vtss_l2sw_port_t*)switch_port->platform_port_state;
-					hw_port = vtss_port->vtss_l2sw_port_num;
-					ROFL_INFO("["DRIVER_NAME"] %s : action OUTPUT for logical port %u -> hardware port %u\n", __FUNCTION__, lg_port, hw_port);
-				} else {
-					ROFL_ERR("["DRIVER_NAME"] %s: Unable to retrieve the hardware port\n", __FUNCTION__);
-					return VTSS_RC_ERROR;
-				}
-			} else {
-				ROFL_ERR("["DRIVER_NAME"] %s: Unable to retrieve the logical switch\n", __FUNCTION__);
-				return VTSS_RC_ERROR;
-			}
 			switch (of1x_get_packet_action_field32(action)) {
 			case OF1X_PORT_CONTROLLER:
 				ROFL_INFO("["DRIVER_NAME"] %s : action for redirect packets to controller\n", __FUNCTION__);
@@ -147,11 +132,34 @@ vtss_rc vtss_l2sw_generate_acl_entry_actions(vtss_ace_t* acl_entry, of1x_flow_en
 				return VTSS_RC_ERROR;
 				break;
 			default:
+				lg_port = of1x_get_packet_action_field32(action);
+				//The OpenFlow port is different from the hardware port
+				dpid_list = physical_switch_get_all_lsi_dpids();
+				if(dpid_list && dpid_list->dpids){
+					switch_port = physical_switch_get_port_by_num(dpid_list->dpids[0], lg_port);
+					dpid_list_destroy(dpid_list);
+					if(switch_port){
+						vtss_port = (vtss_l2sw_port_t*)switch_port->platform_port_state;
+						hw_port = vtss_port->vtss_l2sw_port_num;
+						ROFL_INFO("["DRIVER_NAME"] %s : action OUTPUT for logical port %u -> hardware port %u\n", __FUNCTION__, lg_port, hw_port);
+					} else {
+						ROFL_ERR("["DRIVER_NAME"] %s: Unable to retrieve the hardware port\n", __FUNCTION__);
+						return VTSS_RC_ERROR;
+					}
+				} else {
+					ROFL_ERR("["DRIVER_NAME"] %s: Unable to retrieve the logical switch\n", __FUNCTION__);
+					return VTSS_RC_ERROR;
+				}
 				if (is_valid_port(hw_port) && !is_internal_port(hw_port)) {
 					//TODO: Here I should check for flooding or mirroring ecc...
+					acl_entry->action.cpu = false;
 					acl_entry->action.learn = false;
 					acl_entry->action.port_action = VTSS_ACL_PORT_ACTION_REDIR;
 					acl_entry->action.port_list[hw_port] = TRUE;
+
+					//I need to add this port also to the list of monitored ports
+					acl_entry->port_list[hw_port] = TRUE;
+
 					ROFL_INFO("["DRIVER_NAME"] %s -> Action to redirect packets to hw port %d\n", __FUNCTION__, hw_port);
 				} else {
 					ROFL_ERR("["DRIVER_NAME"] %s: wrong port in vtss_l2sw_generate_acl_entry_actions\n", __FUNCTION__);
