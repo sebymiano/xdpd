@@ -26,6 +26,8 @@
 #include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_pipeline.h>
 #include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_flow_entry.h>
 #include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_statistics.h>
+#include <rofl/datapath/pipeline/openflow/openflow1x/pipeline/of1x_pipeline_pp.h>
+#include <rofl/datapath/pipeline/openflow/of_switch_pp.h>
 
 #include "io/iface_utils.h"
 #include "io/datapacket_storage.h"
