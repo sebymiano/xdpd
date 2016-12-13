@@ -197,7 +197,7 @@ rofl_result_t vtss_l2sw_add_flow_entry(of1x_flow_entry_t* entry) {
 	entry->platform_state = (of1x_flow_entry_platform_state_t*) vtss_entry;
 
 	/* Add ACL entry */
-	if (vtss_ace_add(NULL, VTSS_ACE_ID_LAST, &acl_entry) != VTSS_RC_OK) {
+	if (vtss_ace_add(NULL, --aclID, &acl_entry) != VTSS_RC_OK) {
 		ROFL_ERR("["DRIVER_NAME"] %s(): vtss_ace_add failed, unable to add the ACL\n", __FUNCTION__);
 		vtss_l2sw_destroy_vtss_flow_entry(vtss_entry);
 		return ROFL_FAILURE;
